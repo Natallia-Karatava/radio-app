@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { FetchContext } from "../contexts/FetchContext";
 import { useTranslation } from "react-i18next";
-import img from "../images/logos/favicon_32x32.png";
+import img from "../images/logos/SoundPulse_signet.png";
 import "../styles/StationsList.css";
 
 const StationsList = () => {
