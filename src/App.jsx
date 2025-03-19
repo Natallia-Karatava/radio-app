@@ -6,6 +6,7 @@ import RollingGallery from "./components/RollingGallery";
 import StationsList from "./components/StationsList";
 import Footer from "./components/Footer";
 import PlayComponent from "./components/PlayComponent";
+import VolumeController from "./components/VolumeController";
 
 import FormRegistration from "./components/FormRegistration";
 
@@ -20,6 +21,7 @@ function App() {
       <Footer />
 
       <PlayComponent />
+      <VolumeController />
     </>
   );
 }

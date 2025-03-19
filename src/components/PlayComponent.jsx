@@ -4,6 +4,7 @@ import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 
 const PlayComponent = () => {
+  // Translations and context
   const { t } = useTranslation();
   const {
     currentStation,
@@ -15,10 +16,13 @@ const PlayComponent = () => {
     errorMessage,
   } = useContext(FetchContext);
 
+  // Control handlers
   const handlePlayPause = () => {
     if (!currentStation || isLoading) return;
     togglePlay();
   };
+
+  // Navigation handler
   const changeStation = (direction) => {
     if (!displayedStations.length) return;
     const currentIndex = displayedStations.findIndex(
@@ -29,8 +33,22 @@ const PlayComponent = () => {
       displayedStations.length;
     handleStationClick(displayedStations[newIndex]);
   };
+
+  // Format tags helper
+  const formatTags = (tags) => {
+    if (Array.isArray(tags)) return tags.join(", ");
+    if (typeof tags === "string") {
+      return tags
+        .split(/(?=[A-Z])/)
+        .join(", ")
+        .toLowerCase();
+    }
+    return tags;
+  };
+
   return (
     <>
+      {/* Player controls */}
       <div className="play-component">
         <button
           onClick={handlePlayPause}
@@ -40,12 +58,16 @@ const PlayComponent = () => {
           {isPlaying ? t("Pause") : t("Play")}
         </button>
       </div>
+
+      {/* Navigation buttons */}
       <div className="previous-component">
         <button onClick={() => changeStation(-1)}>{t("Previous")}</button>
       </div>
       <div className="next-component">
         <button onClick={() => changeStation(1)}>{t("Next")}</button>
       </div>
+
+      {/* Station information */}
       <div className="information-component">
         {errorMessage ? (
           <p className="error-message">{errorMessage}</p>
@@ -54,16 +76,7 @@ const PlayComponent = () => {
             <>
               <h3>{currentStation.name}</h3>
               <p>
-                {" "}
-                {currentStation.country}:{" "}
-                {Array.isArray(currentStation.tags)
-                  ? currentStation.tags.join(", ")
-                  : typeof currentStation.tags === "string"
-                  ? currentStation.tags
-                      .split(/(?=[A-Z])/)
-                      .join(", ")
-                      .toLowerCase()
-                  : currentStation.tags}
+                {currentStation.country}: {formatTags(currentStation.tags)}
               </p>
               <p>
                 {currentStation.codec} • {currentStation.bitrate}kbps
