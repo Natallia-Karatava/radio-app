@@ -35,17 +35,17 @@
   gap: 0.3rem;
 }
 
-.icon-wrapper p {
+.icon-footer-wrapper p {
   font-size: 0.7rem;
   margin: 0;
   color: var(--black);
 }
 
-.icon-wrapper:hover {
+.icon-footer-wrapper:hover {
   color: var(--primary);
 }
 
-.icon-wrapper svg {
+.icon-footer-wrapper svg {
   width: 24px;
   height: 24px;
 }
