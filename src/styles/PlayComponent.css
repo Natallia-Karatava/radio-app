@@ -9,6 +9,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  button {
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
 }
 .play-component {
   top: 10rem;
@@ -22,8 +27,13 @@
   top: 10rem;
   right: 20rem;
 }
-button {
-  border: none;
-  background: none;
-  cursor: pointer;
+.information-component {
+  position: absolute;
+  top: 10rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }

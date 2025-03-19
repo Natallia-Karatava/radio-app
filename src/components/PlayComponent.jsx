@@ -12,6 +12,7 @@ const PlayComponent = () => {
     togglePlay,
     handleStationClick,
     displayedStations,
+    errorMessage,
   } = useContext(FetchContext);
 
   const handlePlayPause = () => {
@@ -44,6 +45,32 @@ const PlayComponent = () => {
       </div>
       <div className="next-component">
         <button onClick={() => changeStation(1)}>{t("Next")}</button>
+      </div>
+      <div className="information-component">
+        {errorMessage ? (
+          <p className="error-message">{errorMessage}</p>
+        ) : (
+          currentStation && (
+            <>
+              <h3>{currentStation.name}</h3>
+              <p>
+                {" "}
+                {currentStation.country}:{" "}
+                {Array.isArray(currentStation.tags)
+                  ? currentStation.tags.join(", ")
+                  : typeof currentStation.tags === "string"
+                  ? currentStation.tags
+                      .split(/(?=[A-Z])/)
+                      .join(", ")
+                      .toLowerCase()
+                  : currentStation.tags}
+              </p>
+              <p>
+                {currentStation.codec} • {currentStation.bitrate}kbps
+              </p>
+            </>
+          )
+        )}
       </div>
     </>
   );
