@@ -5,7 +5,6 @@ import RollingGallery from "./components/RollingGallery";
 import Footer from "./components/Footer";
 
 import "./App.css";
-import FormLogin from "./components/FormLogin";
 
 function App() {
   return (
@@ -13,7 +12,7 @@ function App() {
       <Navigation />
       <Header />
       <RollingGallery autoplay={true} pauseOnHover={true} />
-      <FormLogin />
+
       <Footer />
     </div>
   );
