@@ -1,5 +1,5 @@
 import "../styles/Footer.css";
-import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
 import logo from "../images/logos/SoundPulse_black.png";
 
 const Footer = () => {
