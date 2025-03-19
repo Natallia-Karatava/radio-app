@@ -30,17 +30,6 @@ const IMGS = [
   pop,
   retro,
   rock,
-
-  all,
-  classical,
-  country,
-  dance,
-  disco,
-  house,
-  jazz,
-  pop,
-  retro,
-  rock,
 ];
 
 const RollingGallery = ({
@@ -63,13 +52,30 @@ const RollingGallery = ({
     window.innerWidth <= 640
   );
 
-  // Modify these calculations to show more images
-  const faceCount = images.length;
+  // Constants for image layout
+  const SINGLE_IMAGE_WIDTH = 100; // Fixed width for each image
+  const MIN_SPACING = 20; // Minimum space between images
   const baseWidth = containerWidth;
-  const faceWidth = (baseWidth / faceCount) * 0.6;
-  const spacing = faceWidth * 0.1;
+  const circumference = Math.PI * baseWidth;
+
+  // Calculate optimal number of images based on available space
+  const optimalImageCount = Math.floor(
+    circumference / (SINGLE_IMAGE_WIDTH + MIN_SPACING)
+  );
+
+  // Create dynamic repeated images array
+  const repeatedImages = Array(optimalImageCount)
+    .fill(0)
+    .map((_, index) => IMGS[index % IMGS.length]);
+
+  // Update calculations
+  const faceCount = repeatedImages.length;
+  const faceWidth = SINGLE_IMAGE_WIDTH;
+  const spacing = (circumference - faceCount * SINGLE_IMAGE_WIDTH) / faceCount;
   const radius = baseWidth / 2;
   const dragFactor = 0.01;
+
+  images = repeatedImages;
 
   const rotation = useMotionValue(0);
   const controls = useAnimation();
@@ -140,10 +146,12 @@ const RollingGallery = ({
 
   const handleMouseEnter = () => {
     if (autoplay && pauseOnHover) {
+      const currentRotation = rotation.get();
+
       controls.start({
-        rotateY: [rotation.get(), rotation.get() - 360],
+        rotateY: [currentRotation, currentRotation - 360],
         transition: {
-          duration: 500,
+          duration: 200, // Slow rotation (5 seconds)
           ease: "linear",
           repeat: Infinity,
           repeatType: "loop",
@@ -154,10 +162,12 @@ const RollingGallery = ({
 
   const handleMouseLeave = () => {
     if (autoplay && pauseOnHover) {
+      const currentRotation = rotation.get();
+
       controls.start({
-        rotateY: [rotation.get(), rotation.get() - 360],
+        rotateY: [currentRotation, currentRotation - 360],
         transition: {
-          duration: 50,
+          duration: 50, // Fast rotation (0.05 seconds)
           ease: "linear",
           repeat: Infinity,
           repeatType: "loop",
