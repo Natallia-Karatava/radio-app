@@ -1,0 +1,10 @@
+{
+  "name": "Nombre",
+  "email": "Correo",
+  "password": "Contraseña",
+  "confirmPassword": "Confirmar contraseña",
+  "login": "Iniciar sesión",
+  "register": "Registrarse",
+  "logout": "Cerrar sesión",
+  "home": "Inicio"
+}

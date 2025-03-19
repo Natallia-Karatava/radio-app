@@ -6,6 +6,7 @@ import {
   useCallback,
 } from "react";
 import { RadioBrowserApi } from "radio-browser-api";
+import "../styles/StationsList.css";
 
 export const FetchContext = createContext();
 
@@ -22,6 +23,7 @@ export const FetchProvider = ({ children }) => {
   const [stationGenre, setStationGenre] = useState("pop");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [filteredStations, setFilteredStations] = useState([]);
 
   // Pagination state
   const [displayedStations, setDisplayedStations] = useState([]);
@@ -70,8 +72,8 @@ export const FetchProvider = ({ children }) => {
   // Pagination handler with error boundary
   const updateDisplayedStations = useCallback((stationsArray, page) => {
     try {
-      const start = page * 20;
-      const end = start + 20;
+      const start = page * 12;
+      const end = start + 12;
       setDisplayedStations(stationsArray.slice(start, end));
       setHasMore(stationsArray.length > end);
       setCurrentPage(page);
@@ -129,6 +131,7 @@ export const FetchProvider = ({ children }) => {
     displayedStations,
     currentPage,
     hasMore,
+    filteredStations,
     setCurrentStation,
     setStationGenre,
     setErrorMessage,
@@ -136,6 +139,8 @@ export const FetchProvider = ({ children }) => {
     nextPage,
     previousPage,
     setupApi,
+    setLimit,
+    setFilteredStations,
   };
 
   return (

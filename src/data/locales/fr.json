@@ -1,0 +1,13 @@
+{
+  "name": "Nom",
+  "email": "Email",
+  "password": "Mot de passe",
+  "play": "Jouer",
+  "login": "Connexion",
+  "logout": "Déconnexion",
+  "register": "Inscription",
+  "profile": "Profil",
+  "settings": "Paramètres",
+  "language": "Langue",
+  "theme": "Thème"
+}
