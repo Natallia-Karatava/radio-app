@@ -4,13 +4,17 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { RadioBrowserApi } from "radio-browser-api";
 import "../styles/StationsList.css";
+import { useTranslation } from "react-i18next";
 
 export const FetchContext = createContext();
 
 export const FetchProvider = ({ children }) => {
+  const { t } = useTranslation();
+
   // Change initial states to handle "all" cases
   const [lang, setLang] = useState(""); // Empty string for all languages
   const [country, setCountry] = useState(""); // Empty string for all countries
@@ -31,6 +35,9 @@ export const FetchProvider = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  const audioRef = useRef(new Audio());
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // Memoized API setup function
   const setupApi = useCallback(
@@ -184,22 +191,104 @@ export const FetchProvider = ({ children }) => {
     setCurrentPage(0);
   }, []);
 
+  const handleStationClick = async (station) => {
+    // Stop current playback if any
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+
+    setIsPlaying(false);
+    setErrorMessage("");
+
+    const streamUrl = station.urlResolved || station.url;
+    if (!streamUrl) {
+      setErrorMessage(t("No valid stream URL found for this station"));
+      return;
+    }
+
+    const tryPlay = async (url) => {
+      try {
+        // Create new audio instance to prevent multiple streams
+        audioRef.current = new Audio(url);
+
+        // Add event listeners
+        audioRef.current.addEventListener("playing", () => {
+          setIsPlaying(true);
+          setCurrentStation(station);
+          localStorage.setItem("lastPlayedStation", JSON.stringify(station));
+        });
+
+        audioRef.current.addEventListener("pause", () => {
+          setIsPlaying(false);
+        });
+
+        await audioRef.current.play();
+      } catch (error) {
+        if (url.startsWith("https://")) {
+          tryPlay(url.replace("https://", "http://"));
+        } else {
+          setIsPlaying(false);
+          setErrorMessage(
+            t("Cannot play this station. Please try another one.")
+          );
+        }
+      }
+    };
+
+    tryPlay(streamUrl);
+  };
+
+  // Add toggle play function
+  const togglePlay = useCallback(() => {
+    if (!currentStation) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((error) => {
+          console.error("Playback error:", error);
+          setIsPlaying(false);
+          setErrorMessage(t("Playback error. Please try again."));
+        });
+    }
+  }, [currentStation, isPlaying, setErrorMessage, t]);
+
   // Initial setup effect
   useEffect(() => {
     resetToDefaults();
     setupApi("all"); // Initial fetch with default values
   }, []); // Empty deps array ensures this runs only on mount
 
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+    };
+  }, []);
+
   const value = {
     stations,
     currentStation,
     stationGenre,
     isLoading,
+    isPlaying,
     errorMessage,
     displayedStations,
     currentPage,
     hasMore,
     filteredStations,
+    togglePlay,
+    setIsPlaying,
     setCurrentStation,
     setStationGenre,
     setErrorMessage,
@@ -211,6 +300,7 @@ export const FetchProvider = ({ children }) => {
     setFilteredStations,
     resetToDefaults,
     setItemsPerPage,
+    handleStationClick,
   };
 
   return (
