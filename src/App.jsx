@@ -8,18 +8,23 @@ import Footer from "./components/Footer";
 
 
 
+import FormRegistration from "./components/FormRegistration";
+
+
+
 
 function App() {
   return (
-    <div className="App">
+    <>
       <Navigation />
       <Header />
       <RollingGallery autoplay={true} pauseOnHover={true} />
-    
-      <StationsList />
 
+      <StationsList />
+      <FormRegistration />
       <Footer />
-    </div>
+    </>
+
   );
 }
 
