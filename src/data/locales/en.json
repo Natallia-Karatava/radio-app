@@ -1,5 +1,19 @@
 {
   "name": "Name",
   "play": "Play",
-  "name of station": "name of station"
+  "name of station": "name of station",
+  "Login is not required, but it will give you more features.": "Login is not required, but it will give you more features.",
+  "username": "Username",
+  "password": "Password",
+  "Don't have an account? ": "Don't have an account? ",
+  "Continue as Guest": "Continue as Guest",
+  "Please enter a valid email address.": "Please enter a valid email address.",
+  "We have sent your username and password to your email.": "We have sent your username and password to your email.",
+  "Enter your email*": "Enter your email*",
+  "Send username & password to email": "Send username & password to email",
+  "Password doesn't match.": "Password doesn't match.",
+  "confirm password*": "confirm password*",
+  "Sign Up": "Sign Up",
+  "Sign In": "Sign In",
+  "Already registered? Login": "Already registered? Login"
 }

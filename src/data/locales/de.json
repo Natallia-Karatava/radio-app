@@ -5,5 +5,18 @@
   "login": "Anmelden",
   "register": "Registrieren",
   "logout": "Abmelden",
-  "home": "Startseite"
+  "home": "Startseite",
+  "Login is not required, but it will give you more features.": "Die Anmeldung ist nicht erforderlich, bietet Ihnen jedoch mehr Funktionen.",
+  "username": "Benutzername",
+  "Don't have an account? ": "Sie haben noch keinen Account? ",
+  "Continue as Guest": "Als Gast fortfahren",
+  "Please enter a valid email address.": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+  "We have sent your username and password to your email.": "Wir haben Ihren Benutzernamen und Ihr Passwort an Ihre E-Mail-Adresse gesendet.",
+  "Enter your email*": "Geben Sie Ihre E-Mail-Adresse ein*",
+  "Send username & password to email": "Benutzername und Passwort an E-Mail senden",
+  "Password doesn't match.": "Passwort stimmt nicht überein.",
+  "confirm password*": "Passwort bestätigen*",
+  "Sign Up": "Registrieren",
+  "Sign In": "Anmelden",
+  "Already registered? Login": "Bereits registriert? Anmelden"
 }

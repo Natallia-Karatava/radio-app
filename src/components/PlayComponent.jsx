@@ -25,12 +25,23 @@ const PlayComponent = () => {
   // Navigation handler
   const changeStation = (direction) => {
     if (!displayedStations.length) return;
+
     const currentIndex = displayedStations.findIndex(
       (station) => station.id === currentStation?.id
     );
-    const newIndex =
-      (currentIndex + direction + displayedStations.length) %
-      displayedStations.length;
+
+    let newIndex;
+    if (direction === -1 && currentIndex === 0) {
+      newIndex = displayedStations.length - 1;
+    } else if (
+      direction === 1 &&
+      currentIndex === displayedStations.length - 1
+    ) {
+      newIndex = 0;
+    } else {
+      newIndex = currentIndex + direction;
+    }
+
     handleStationClick(displayedStations[newIndex]);
   };
 

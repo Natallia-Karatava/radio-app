@@ -35,7 +35,6 @@ const IMGS = [
 ];
 
 const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
-  // Context and state
   const { setStationGenre } = useContext(FetchContext);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(window.innerWidth);
@@ -43,7 +42,7 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
     window.innerWidth <= 640
   );
 
-  // Layout constants
+  // Layout calculations
   const SINGLE_IMAGE_WIDTH = 100;
   const MIN_SPACING = 20;
   const baseWidth = containerWidth;
@@ -51,13 +50,9 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
   const optimalImageCount = Math.floor(
     circumference / (SINGLE_IMAGE_WIDTH + MIN_SPACING)
   );
-
-  // Dynamic image array generation
   const repeatedImages = Array(optimalImageCount)
     .fill(0)
     .map((_, index) => IMGS[index % IMGS.length]);
-
-  // Gallery calculations
   const faceCount = repeatedImages.length;
   const faceWidth = SINGLE_IMAGE_WIDTH;
   const spacing = (circumference - faceCount * SINGLE_IMAGE_WIDTH) / faceCount;
@@ -72,30 +67,15 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
     (value) => `rotate3d(0, 1, 0, ${value}deg)`
   );
 
-  // Genre selection handler
+  // Event handlers
   const handleGenreSelect = (url) => {
     const genre = url.split("/").pop().split(".")[0];
     setStationGenre(genre);
   };
 
-  // Resize handlers
-  useEffect(() => {
-    const updateWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.offsetWidth);
-        setIsScreenSizeSm(window.innerWidth <= 640);
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(updateWidth);
-    if (containerRef.current) resizeObserver.observe(containerRef.current);
-    updateWidth();
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  // Drag handlers
   const handleDrag = (_, info) =>
     rotation.set(rotation.get() + info.offset.x * dragFactor);
+
   const handleDragEnd = (_, info) => {
     controls.start({
       rotateY: rotation.get() + info.velocity.x * dragFactor,
@@ -109,22 +89,6 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
     });
   };
 
-  // Autoplay control
-  useEffect(() => {
-    if (!autoplay) return;
-    controls.start({
-      rotateY: [0, -360],
-      transition: {
-        duration: 50,
-        ease: "linear",
-        repeat: Infinity,
-        repeatType: "loop",
-      },
-    });
-    return () => controls.stop();
-  }, [autoplay, controls]);
-
-  // Hover handlers
   const handleMouseEnter = () => {
     if (!autoplay || !pauseOnHover) return;
     const currentRotation = rotation.get();
@@ -153,11 +117,47 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
     });
   };
 
-  // Rest of the component remains the same...
+  const getItemStyle = (index) => ({
+    width: `${faceWidth}px`,
+    transform: `rotateY(${
+      index * (360 / faceCount)
+    }deg) translateZ(${radius}px)`,
+    margin: `0 ${spacing}px`,
+  });
+
+  // Effects
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+        setIsScreenSizeSm(window.innerWidth <= 640);
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(updateWidth);
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
+    updateWidth();
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!autoplay) return;
+    controls.start({
+      rotateY: [0, -360],
+      transition: {
+        duration: 50,
+        ease: "linear",
+        repeat: Infinity,
+        repeatType: "loop",
+      },
+    });
+    return () => controls.stop();
+  }, [autoplay, controls]);
+
   return (
     <div className="gallery-container" ref={containerRef}>
-      <div className="gallery-gradient gallery-gradient-left"></div>
-      <div className="gallery-gradient gallery-gradient-right"></div>
+      <div className="gallery-gradient gallery-gradient-left" />
+      <div className="gallery-gradient gallery-gradient-right" />
       <div className="gallery-content">
         <motion.div
           drag="x"
