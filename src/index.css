@@ -3,6 +3,7 @@
 
 
 :root {
+  font-size: 62,5%; 
   font-family: "Fredoka", sans-serif;
   /* Color pallete variante */
 
@@ -11,7 +12,9 @@
   --black: #212121;
   --beige: #ffdbae;
   --brown: #24160a;
-  --white: #ffffff
+  --white: #ffffff;
+  --error: #D05D5B;
+  --warning: #E7C05C;
 
   --border-radius-small: 4px;
   --border-radius-medium: 8px;
