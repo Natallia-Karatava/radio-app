@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+:root {
+  /* Color pallete variante */
+
+  --primary: #67b095;
+  --secondary: rgba(103, 176, 149, 0.5);
+  --black: #212121;
+  --beige: #ffdbae;
+  --brown: #24160a;
+
+  --border-radius-small: 4px;
+  --border-radius-medium: 8px;
+  --border-radius-big: 50px;
+}
