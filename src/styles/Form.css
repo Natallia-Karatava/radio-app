@@ -72,3 +72,42 @@
   margin-top: -10px;
   margin-bottom: 10px;
 }
+
+/* Form PasswortForgot */
+.info-text-forgot-pass {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin-top: 10px;
+}
+
+/* Form Settings */
+.account-settings {
+  width: 60%;
+}
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 20px;
+  cursor: pointer;
+  background: #f0f0f0;
+  border: none;
+  margin-right: 10px;
+}
+
+.tab.active {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-content input {
+  margin-bottom: 10px;
+  padding: 10px;
+}

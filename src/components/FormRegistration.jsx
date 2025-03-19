@@ -37,13 +37,7 @@ const FormRegistration = () => {
           onChange={(e) => setUsername(e.target.value)}
           required
         />
-        <input
-          type="text"
-          placeholder="username*"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
+
         <input
           type="password"
           placeholder="password*"
