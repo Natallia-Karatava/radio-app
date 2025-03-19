@@ -1,22 +1,23 @@
 import { useContext, useEffect, useState } from "react";
 import { FetchContext } from "../contexts/FetchContext";
+import { useTranslation } from "react-i18next";
 import img from "../images/logos/favicon_32x32.png";
 import "../styles/StationsList.css";
 
 const StationsList = () => {
-  // Add local state to track window width
+  const { t } = useTranslation();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const {
     displayedStations,
     currentStation,
-    setCurrentStation,
     isLoading,
     hasMore,
     nextPage,
     previousPage,
     currentPage,
     setItemsPerPage,
+    handleStationClick,
   } = useContext(FetchContext);
 
   useEffect(() => {
@@ -24,7 +25,6 @@ const StationsList = () => {
       const width = window.innerWidth;
       setWindowWidth(width);
 
-      // Update items per page based on window width
       if (width <= 480) {
         setItemsPerPage(6);
         console.log("Mobile view:", width, "- 6 items");
@@ -37,15 +37,10 @@ const StationsList = () => {
       }
     };
 
-    handleResize(); // Initial call
+    handleResize();
     window.addEventListener("resize", handleResize);
-
     return () => window.removeEventListener("resize", handleResize);
-  }, [setItemsPerPage]); // Keep this dependency
-
-  const handleStationClick = (station) => {
-    setCurrentStation(station);
-  };
+  }, [setItemsPerPage]);
 
   return (
     <div>
@@ -82,7 +77,6 @@ const StationsList = () => {
         ))}
       </div>
 
-      {/* Add pagination controls */}
       <div className="pagination-controls">
         {currentPage > 0 && <button onClick={previousPage}>Previous</button>}
         {hasMore && <button onClick={nextPage}>Next</button>}
