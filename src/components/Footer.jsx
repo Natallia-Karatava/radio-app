@@ -20,7 +20,7 @@ const Footer = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <div className="icon-wrapper">
+          <div className="icon-footer-wrapper">
             <FaGithub />
             <p>Ka</p>
           </div>
@@ -30,8 +30,8 @@ const Footer = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <div className="icon-wrapper">
-            <FaLinkedin />
+          <div className="icon-footer-wrapper">
+            <FaGithub />
             <p>Ro</p>
           </div>
         </a>
@@ -40,8 +40,8 @@ const Footer = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <div className="icon-wrapper">
-            <FaEnvelope />
+          <div className="icon-footer-wrapper">
+            <FaGithub />
             <p>Bo</p>
           </div>
         </a>
