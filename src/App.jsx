@@ -1,11 +1,10 @@
-import { useState } from "react";
-
 import "./App.css";
+import Navigation from "./components/Navigation";
 
 function App() {
   return (
     <>
-      <h1>SoundPulse</h1>
+      <Navigation />
     </>
   );
 }
