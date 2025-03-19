@@ -5,7 +5,7 @@
   padding: 1rem 4rem;
   background-color: rgba(104, 177, 150, 0.5);
   box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
-  flex-wrap: nowrap; /* важно! */
+  flex-wrap: nowrap;
 }
 
 .footer-left img.footer-logo {
@@ -17,11 +17,14 @@
   font-size: 0.9rem;
   color: var(--black);
   text-align: center;
+  margin: 0;
+  flex: 1;
 }
 
 .footer-right {
   display: flex;
   gap: 1.4rem;
+  justify-content: flex-end;
 }
 
 .footer-right a {
@@ -55,14 +58,8 @@
 @media (max-width: 768px) {
   .footer {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
     padding: 1rem 1.5rem;
-  }
-
-  /* строка с лого и иконками */
-  .footer-left,
-  .footer-right {
-    width: auto;
   }
 
   .footer-left,
@@ -72,25 +69,19 @@
   }
 
   .footer-left {
-    justify-content: flex-start;
     flex: 1;
+    justify-content: flex-start;
   }
 
   .footer-right {
-    justify-content: flex-end;
     flex: 1;
-    gap: 1rem;
+    justify-content: flex-end;
   }
 
-  /* обертка первой строки */
-  .footer {
-    flex-wrap: wrap;
-  }
-
-  .footer > .footer-center {
-    order: 2;
+  .footer-center {
     width: 100%;
-    margin-top: 0.5rem;
+    text-align: center;
+    margin-top: 1rem;
   }
 
   .footer-center p {
