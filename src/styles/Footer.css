@@ -11,6 +11,8 @@
 .footer-left img.footer-logo {
   width: 150px;
   height: auto;
+  display: flex;
+  align-items: center;
 }
 
 .footer-center p {
