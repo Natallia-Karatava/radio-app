@@ -1,0 +1,29 @@
+.play-component,
+.previous-component,
+.next-component {
+  position: absolute;
+  width: 10%;
+  aspect-ratio: 1/1;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.play-component {
+  top: 10rem;
+  left: 10rem;
+}
+.previous-component {
+  top: 10rem;
+  right: 5rem;
+}
+.next-component {
+  top: 10rem;
+  right: 20rem;
+}
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}

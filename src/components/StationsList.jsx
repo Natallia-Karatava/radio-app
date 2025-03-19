@@ -1,39 +1,51 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FetchContext } from "../contexts/FetchContext";
+import { useTranslation } from "react-i18next";
 import img from "../images/logos/favicon_32x32.png";
+import "../styles/StationsList.css";
 
 const StationsList = () => {
+  const { t } = useTranslation();
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   const {
-    stationGenre,
-    setCurrentStation,
-    stations,
-    isLoading,
+    displayedStations,
     currentStation,
+    isLoading,
+    hasMore,
+    nextPage,
+    previousPage,
+    currentPage,
+    setItemsPerPage,
+    handleStationClick,
   } = useContext(FetchContext);
 
-  // Improved filter with type checking
-  const filteredStations =
-    stationGenre === "all"
-      ? stations
-      : stations?.filter((station) => {
-          // Handle different tag formats
-          const stationTags = Array.isArray(station.tags)
-            ? station.tags.join(" ").toLowerCase()
-            : typeof station.tags === "string"
-            ? station.tags.toLowerCase()
-            : "";
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setWindowWidth(width);
 
-          return stationTags.includes(stationGenre?.toLowerCase() || "");
-        });
+      if (width <= 480) {
+        setItemsPerPage(6);
+        console.log("Mobile view:", width, "- 6 items");
+      } else if (width <= 768) {
+        setItemsPerPage(8);
+        console.log("Tablet view:", width, "- 8 items");
+      } else {
+        setItemsPerPage(12);
+        console.log("Desktop view:", width, "- 12 items");
+      }
+    };
 
-  const handleStationClick = (station) => {
-    setCurrentStation(station);
-  };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setItemsPerPage]);
 
   return (
     <div>
       <div className="stations-list">
-        {filteredStations?.map((station) => (
+        {displayedStations?.map((station) => (
           <div
             key={station.id}
             className={`station-item ${
@@ -42,25 +54,32 @@ const StationsList = () => {
             onClick={() => handleStationClick(station)}
           >
             <div className="station-logo">
-              <img src={station.favicon || img} alt="" />
+              <img src={station.favicon || img} alt="radiostation logo" />
             </div>
-            <h3>{station.name}</h3>
-            <p>
-              {station.country}:{" "}
-              {Array.isArray(station.tags)
-                ? station.tags.join(", ")
-                : typeof station.tags === "string"
-                ? station.tags
-                    .split(/(?=[A-Z])/)
-                    .join(", ")
-                    .toLowerCase()
-                : station.tags}
-            </p>
-            <p>
-              {station.codec} • {station.bitrate}kbps
-            </p>
+            <div className="station-description">
+              <h3>{station.name}</h3>
+              <p>
+                {station.country}:{" "}
+                {Array.isArray(station.tags)
+                  ? station.tags.join(", ")
+                  : typeof station.tags === "string"
+                  ? station.tags
+                      .split(/(?=[A-Z])/)
+                      .join(", ")
+                      .toLowerCase()
+                  : station.tags}
+              </p>
+              <p>
+                {station.codec} • {station.bitrate}kbps
+              </p>
+            </div>
           </div>
         ))}
+      </div>
+
+      <div className="pagination-controls">
+        {currentPage > 0 && <button onClick={previousPage}>Previous</button>}
+        {hasMore && <button onClick={nextPage}>Next</button>}
       </div>
 
       {isLoading && <div className="loading">Loading...</div>}
