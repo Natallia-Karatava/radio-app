@@ -1,6 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+
 
 :root {
+  font-family: "Fredoka", sans-serif;
   /* Color pallete variante */
 
   --primary: #67b095;
@@ -8,6 +11,7 @@
   --black: #212121;
   --beige: #ffdbae;
   --brown: #24160a;
+  --white: #ffffff
 
   --border-radius-small: 4px;
   --border-radius-medium: 8px;
