@@ -7,8 +7,6 @@ import Footer from "./components/Footer";
 
 import "./App.css";
 
-import FormRegistration from "./components/FormRegistration";
-
 function App() {
   return (
     <div className="App">
@@ -17,8 +15,6 @@ function App() {
       <RollingGallery autoplay={true} pauseOnHover={true} />
 
       <StationsList />
-
-      <FormRegistration />
 
       <Footer />
     </div>
