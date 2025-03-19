@@ -9,5 +9,18 @@
   "profile": "Profil",
   "settings": "Paramètres",
   "language": "Langue",
-  "theme": "Thème"
+  "theme": "Thème",
+  "Login is not required, but it will give you more features.": "La connexion n'est pas requise, mais elle vous donnera plus de fonctionnalités.",
+  "username": "Nom d'utilisateur",
+  "Don't have an account? ": "Vous n'avez pas de compte? ",
+  "Continue as Guest": "Continuer en tant qu'invité",
+  "Please enter a valid email address.": "Veuillez saisir une adresse e-mail valide.",
+  "We have sent your username and password to your email.": "Nous avons envoyé votre nom d'utilisateur et votre mot de passe à votre adresse e-mail.",
+  "Enter your email*": "Entrez votre adresse e-mail*",
+  "Send username & password to email": "Envoyer le nom d'utilisateur et le mot de passe par e-mail",
+  "Password doesn't match.": "Le mot de passe ne correspond pas.",
+  "confirm password*": "Confirmer le mot de passe*",
+  "Sign Up": "S'inscrire",
+  "Sign In": "Se connecter",
+  "Already registered? Login": "Déjà inscrit? Connexion"
 }

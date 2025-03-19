@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import "../styles/Form.css";
 import logoFormRegistration from "../images/logos/SoundPulse_green.png";
+import { useTranslation } from "react-i18next";
 
 const FormRegistration = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -10,7 +12,7 @@ const FormRegistration = () => {
 
   const handleSignUp = () => {
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("Password doesn't match."));
       return;
     }
     setError("");
@@ -32,7 +34,7 @@ const FormRegistration = () => {
       <div className="form-container-login">
         <input
           type="text"
-          placeholder="username*"
+          placeholder={t("username*")}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
@@ -40,14 +42,14 @@ const FormRegistration = () => {
 
         <input
           type="password"
-          placeholder="password*"
+          placeholder={t("password*")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
         <input
           type="password"
-          placeholder="confirm password*"
+          placeholder={t("confirm password*")}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
@@ -55,9 +57,11 @@ const FormRegistration = () => {
 
         {error && <p className="error-text-registration">{error}</p>}
 
-        <button onClick={handleSignUp}>Sign Up</button>
+        <button onClick={handleSignUp}>{t("Sign Up")}</button>
 
-        <button onClick={handleGuestLogin}>Already registered? Login</button>
+        <button onClick={handleGuestLogin}>
+          {t("Already registered? Login")}
+        </button>
       </div>
     </div>
   );

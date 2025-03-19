@@ -1,5 +1,19 @@
 {
   "name": "الاسم",
   "play": "تشغيل",
-  "name of station": "اسم المحطة"
+  "name of station": "اسم المحطة",
+  "Login is not required, but it will give you more features.": "الدخول غير مطلوب، ولكن سيمنحك المزيد من الميزات.",
+  "username": "اسم المستخدم",
+  "password": "كلمة المرور",
+  "Don't have an account? ": "ليس لديك حساب؟ ",
+  "Continue as Guest": "المتابعة كضيف",
+  "Please enter a valid email address.": "الرجاء إدخال عنوان بريد إلكتروني صالح.",
+  "We have sent your username and password to your email.": "لقد أرسلنا اسم المستخدم وكلمة المرور الخاصين بك إلى بريدك الإلكتروني.",
+  "Enter your email*": "أدخل بريدك الإلكتروني*",
+  "Send username & password to email": "إرسال اسم المستخدم وكلمة المرور إلى البريد الإلكتروني",
+  "Password doesn't match.": "كلمة المرور غير متطابقة.",
+  "confirm password*": "تأكيد كلمة المرور*",
+  "Sign Up": "سجل",
+  "Sign In": "تسجيل الدخول",
+  "Already registered? Login": "مسجل بالفعل؟ تسجيل الدخول"
 }

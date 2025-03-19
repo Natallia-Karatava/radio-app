@@ -237,6 +237,7 @@ export const FetchProvider = ({ children }) => {
     errorMessage,
     currentPage,
     hasMore,
+    audioRef,
 
     // Actions
     togglePlay,

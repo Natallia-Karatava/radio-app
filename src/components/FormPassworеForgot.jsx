@@ -1,19 +1,21 @@
 import React, { useState } from "react";
 import "../styles/Form.css";
 import logoFormPassForgot from "../images/logos/SoundPulse_green.png";
+import { useTranslation } from "react-i18next";
 
 const FormPasswortForgot = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
   const handleSend = () => {
     // Simple email validation
     if (!email || !email.includes("@")) {
-      setMessage("Please enter a valid email address.");
+      setMessage(t("Please enter a valid email address."));
       return;
     }
 
-    setMessage("We have sent your username and password to your email.");
+    setMessage(t("We have sent your username and password to your email."));
     console.log("Sending credentials to:", email);
     // Here may be a request to the server for password recovery
   };
@@ -27,7 +29,7 @@ const FormPasswortForgot = () => {
       <div className="form-container-login">
         <input
           type="email"
-          placeholder="Enter your email*"
+          placeholder={t("Enter your email*")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -35,7 +37,9 @@ const FormPasswortForgot = () => {
 
         {message && <p className="info-text-forgot-pass">{message}</p>}
 
-        <button onClick={handleSend}>Send username & password to email</button>
+        <button onClick={handleSend}>
+          {t("Send username & password to email")}
+        </button>
       </div>
     </div>
   );

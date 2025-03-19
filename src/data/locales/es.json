@@ -6,5 +6,18 @@
   "login": "Iniciar sesión",
   "register": "Registrarse",
   "logout": "Cerrar sesión",
-  "home": "Inicio"
+  "home": "Inicio",
+  "Login is not required, but it will give you more features.": "No es necesario iniciar sesión, pero te dará más funciones.",
+  "username": "Nombre de usuario",
+  "Don't have an account? ": "¿No tienes una cuenta? ",
+  "Continue as Guest": "Continuar como invitado",
+  "Please enter a valid email address.": "Por favor, introduce una dirección de correo electrónico válida.",
+  "We have sent your username and password to your email.": "Hemos enviado tu nombre de usuario y contraseña a tu correo electrónico.",
+  "Enter your email*": "Introduce tu correo electrónico*",
+  "Send username & password to email": "Enviar nombre de usuario y contraseña por correo electrónico",
+  "Password doesn't match.": "La contraseña no coincide.",
+  "confirm password*": "Confirmar contraseña*",
+  "Sign Up": "Regístrate",
+  "Sign In": "Iniciar sesión",
+  "Already registered? Login": "¿Ya estás registrado? Inicia sesión"
 }
