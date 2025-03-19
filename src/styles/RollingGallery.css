@@ -1,0 +1,100 @@
+.gallery-container {
+  position: relative;
+  height: fit-content;
+  width: 100%;
+  overflow: hidden;
+}
+
+.gallery-gradient {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 48px;
+  z-index: 10;
+}
+/* 
+  .gallery-gradient-left {
+    left: 0;
+    background: linear-gradient(to left, rgba(0, 0, 0, 0) 0%, var(--black) 100%);
+  }
+  
+  .gallery-gradient-right {
+    right: 0;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, var(--black) 100%);
+  } */
+
+.gallery-gradient-left {
+  left: 0;
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0) 0%,
+    var(--white) 100%
+  );
+}
+
+.gallery-gradient-right {
+  right: 0;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    var(--white) 100%
+  );
+}
+
+.gallery-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 2000px;
+  transform-style: preserve-3d;
+}
+
+.gallery-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  display: flex;
+  height: auto;
+  min-height: 200px;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  gap: 20px; /* Add gap between items */
+}
+
+.gallery-item {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backface-visibility: hidden;
+  height: fit-content;
+  /* Remove width constraints to allow natural image size */
+  padding: 10px;
+}
+
+.gallery-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain; /* Changed from 'cover' to maintain aspect ratio */
+  border-radius: 10px;
+  border: 5px solid #67b09580;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.gallery-item:hover .gallery-img {
+  transform: scale(1.05);
+  transition: 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .gallery-item {
+    padding: 6%;
+  }
+  .gallery-img {
+    height: 100px;
+    width: 220px;
+  }
+}

@@ -1,0 +1,22 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+
+
+:root {
+  font-size: 62,5%; 
+  font-family: "Fredoka", sans-serif;
+  /* Color pallete variante */
+
+  --primary: #67b095;
+  --secondary: rgba(103, 176, 149, 0.5);
+  --black: #212121;
+  --beige: #ffdbae;
+  --brown: #24160a;
+  --white: #ffffff;
+  --error: #D05D5B;
+  --warning: #E7C05C;
+
+  --border-radius-small: 4px;
+  --border-radius-medium: 8px;
+  --border-radius-big: 50px;
+}
