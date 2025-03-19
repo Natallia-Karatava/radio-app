@@ -15,17 +15,21 @@
 /* 
   .gallery-gradient-left {
     left: 0;
-    background: linear-gradient(to left, rgba(0, 0, 0, 0) 0%, #060606 100%);
+    background: linear-gradient(to left, rgba(0, 0, 0, 0) 0%, var(--black) 100%);
   }
   
   .gallery-gradient-right {
     right: 0;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, #060606 100%);
+    background: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, var(--black) 100%);
   } */
 
 .gallery-gradient-left {
   left: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 0) 0%, #ffffff 100%);
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0) 0%,
+    var(--white) 100%
+  );
 }
 
 .gallery-gradient-right {
@@ -33,7 +37,7 @@
   background: linear-gradient(
     to right,
     rgba(255, 255, 255, 0) 0%,
-    #ffffff 100%
+    var(--white) 100%
   );
 }
 
