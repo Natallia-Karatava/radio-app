@@ -1,0 +1,9 @@
+{
+  "name": "Name",
+  "email": "E-Mail",
+  "password": "Passwort",
+  "login": "Anmelden",
+  "register": "Registrieren",
+  "logout": "Abmelden",
+  "home": "Startseite"
+}
