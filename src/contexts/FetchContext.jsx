@@ -72,8 +72,8 @@ export const FetchProvider = ({ children }) => {
   // Pagination handler with error boundary
   const updateDisplayedStations = useCallback((stationsArray, page) => {
     try {
-      const start = page * 12;
-      const end = start + 12;
+      const start = page * 20;
+      const end = start + 20;
       setDisplayedStations(stationsArray.slice(start, end));
       setHasMore(stationsArray.length > end);
       setCurrentPage(page);
