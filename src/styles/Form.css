@@ -1,0 +1,74 @@
+.logo-container-form {
+  text-align: center;
+}
+
+.logo-form {
+  width: 250px;
+}
+
+/* ===== login Form style =====*/
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 100;
+}
+
+.info-text {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: var(--black);
+}
+
+.form-container-login {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.signup-link {
+  text-align: center;
+  color: var(--black);
+}
+
+.signup-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+.signup-button:hover {
+  text-decoration: underline;
+}
+
+.or-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.divider {
+  width: 160px;
+  border: 0;
+  border-top: 1px solid #ccc;
+}
+
+.or-text {
+  font-size: 14px;
+  color: var(--black);
+}
+
+/* Form Registration  */
+.error-text-registration {
+  color: var(--error);
+  font-size: 1.2rem;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
