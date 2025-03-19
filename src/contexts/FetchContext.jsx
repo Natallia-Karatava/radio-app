@@ -7,7 +7,7 @@ import {
 } from "react";
 import { RadioBrowserApi } from "radio-browser-api";
 
-const FetchContext = createContext();
+export const FetchContext = createContext();
 
 export const FetchProvider = ({ children }) => {
   const [lang, setLang] = useState("english");
