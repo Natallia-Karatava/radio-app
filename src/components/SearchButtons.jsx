@@ -6,7 +6,7 @@ import { FetchContext } from "../contexts/FetchContext";
 
 const SearchButtons = () => {
   const { t } = useTranslation();
-  const { setShowFavorites, changeDisplayMode, displayMode } =
+  const { setShowFavorites, changeDisplayMode, displayMode, getRandomStation } =
     useContext(FetchContext);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -20,7 +20,7 @@ const SearchButtons = () => {
         >
           <FaHeart size={24} /> {t("My favorites")}
         </button>
-        <button className="button">
+        <button className="button" onClick={() => getRandomStation()}>
           <FaRandom size={24} /> {t("Random channels")}
         </button>
         <button className="button">
