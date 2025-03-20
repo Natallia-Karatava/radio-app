@@ -35,7 +35,7 @@ const IMGS = [
 ];
 
 const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
-  const { setStationGenre } = useContext(FetchContext);
+  const { setStationGenre, changeDisplayMode } = useContext(FetchContext);
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(window.innerWidth);
   const [isScreenSizeSm, setIsScreenSizeSm] = useState(
@@ -70,7 +70,7 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
   // Event handlers
   const handleGenreSelect = (url) => {
     const genre = url.split("/").pop().split(".")[0];
-    setStationGenre(genre);
+    changeDisplayMode("genre", genre); // Change both mode and genre
   };
 
   const handleDrag = (_, info) =>

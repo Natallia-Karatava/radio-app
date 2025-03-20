@@ -8,6 +8,7 @@ const FormRegistration = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
 
   const handleSignUp = () => {
@@ -26,18 +27,20 @@ const FormRegistration = () => {
   };
 
   return (
-    <div className="login-form">
+    <div className="form">
       <div className="logo-container-form">
         <img src={logoFormRegistration} alt="Logo" className="logo-form" />
       </div>
 
       <div className="form-container-login">
+        <h3>Registration</h3>
         <input
           type="text"
           placeholder={t("username*")}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          className="input-form"
         />
 
         <input
@@ -46,6 +49,7 @@ const FormRegistration = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className="input-form"
         />
         <input
           type="password"
@@ -53,13 +57,24 @@ const FormRegistration = () => {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
+          className="input-form"
+        />
+        <input
+          type="email"
+          placeholder={t("e-mail*")}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="input-form"
         />
 
         {error && <p className="error-text-registration">{error}</p>}
 
-        <button onClick={handleSignUp}>{t("Sign Up")}</button>
+        <button className="button" onClick={handleSignUp}>
+          {t("Sign Up")}
+        </button>
 
-        <button onClick={handleGuestLogin}>
+        <button className="button-secondary" onClick={handleGuestLogin}>
           {t("Already registered? Login")}
         </button>
       </div>
