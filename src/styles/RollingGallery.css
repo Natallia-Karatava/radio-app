@@ -15,17 +15,21 @@
 /* 
   .gallery-gradient-left {
     left: 0;
-    background: linear-gradient(to left, rgba(0, 0, 0, 0) 0%, #060606 100%);
+    background: linear-gradient(to left, rgba(0, 0, 0, 0) 0%, var(--black) 100%);
   }
   
   .gallery-gradient-right {
     right: 0;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, #060606 100%);
+    background: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, var(--black) 100%);
   } */
 
 .gallery-gradient-left {
   left: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 0) 0%, #ffffff 100%);
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0) 0%,
+    var(--white) 100%
+  );
 }
 
 .gallery-gradient-right {
@@ -33,7 +37,7 @@
   background: linear-gradient(
     to right,
     rgba(255, 255, 255, 0) 0%,
-    #ffffff 100%
+    var(--white) 100%
   );
 }
 
@@ -56,8 +60,7 @@
   justify-content: center;
   align-items: center;
   cursor: grab;
-  gap: 20px; /* Add gap between items */
-}
+  gap: 20px; 
 
 .gallery-item {
   position: absolute;
@@ -66,16 +69,15 @@
   align-items: center;
   backface-visibility: hidden;
   height: fit-content;
-  /* Remove width constraints to allow natural image size */
-  padding: 10px;
+   padding: 10px;
 }
 
 .gallery-img {
   width: 100px;
   height: 100px;
-  object-fit: contain; /* Changed from 'cover' to maintain aspect ratio */
+  object-fit: contain; 
   border-radius: 10px;
-  border: 5px solid #67b09580;
+  border: 5px solid var(--primary);
   cursor: pointer;
   transition: 0.3s ease;
 }
