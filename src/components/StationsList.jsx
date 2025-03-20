@@ -58,7 +58,7 @@ const StationsList = () => {
 
   return (
     <div className={`stations-container ${isEmpty ? "empty-favorites" : ""}`}>
-      <h2 className="h2">
+      <h2 className="h2 text-center">
         {displayMode === "genre" && stationGenre
           ? `${t("Radio Stations")} - ${t(stationGenre)}`
           : displayMode === "favorites"
