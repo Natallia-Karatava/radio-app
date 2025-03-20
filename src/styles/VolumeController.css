@@ -24,7 +24,7 @@
   aspect-ratio: 1;
   position: relative;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.0);
 }
 
 .circle::before {
@@ -50,12 +50,12 @@
 }
 
 .dot {
-  width: 15%;
+  width: 25%;
   aspect-ratio: 1;
-  background-color: #8b4513;
+  background-color: var(--beige);
   border-radius: 50%;
   position: absolute;
-  border: 2px solid #5c3411;
+  border:6px ridge var(--primary);
   box-sizing: border-box;
   cursor: pointer;
 }
@@ -67,7 +67,7 @@
   transform: translate(-50%, -50%);
   font-size: clamp(12px, 4vw, 14px);
   font-weight: bold;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--black);
   padding: 5% 7.5%;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
