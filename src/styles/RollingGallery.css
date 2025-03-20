@@ -60,7 +60,8 @@
   justify-content: center;
   align-items: center;
   cursor: grab;
-  gap: 20px; 
+  gap: 20px;
+}
 
 .gallery-item {
   position: absolute;
@@ -69,13 +70,13 @@
   align-items: center;
   backface-visibility: hidden;
   height: fit-content;
-   padding: 10px;
+  padding: 10px;
 }
 
 .gallery-img {
   width: 100px;
   height: 100px;
-  object-fit: contain; 
+  object-fit: contain;
   border-radius: 10px;
   border: 5px solid var(--primary);
   cursor: pointer;
