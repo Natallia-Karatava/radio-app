@@ -77,12 +77,30 @@ export const FetchProvider = ({ children }) => {
     console.log("Current favorites:", favorites);
   }, [favorites]);
 
+  const deleteFavorite = useCallback((stationId) => {
+    setFavorites((prevFavorites) => {
+      const newFavorites = prevFavorites.filter((fav) => fav.id !== stationId);
+      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
+      return newFavorites;
+    });
+  }, []);
+
   // API setup and station fetching
   const setupApi = useCallback(
     async (genre) => {
       try {
         setIsLoading(true);
-        const api = new RadioBrowserApi(fetch.bind(window), "My Radio App");
+        // Use HTTPS instead of HTTP and specify a fixed server
+        const api = new RadioBrowserApi(
+          "https://de1.api.radio-browser.info",
+          fetch.bind(window),
+          {
+            headers: {
+              "User-Agent": "SoundPulse Radio/1.0",
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         const searchParams = {
           limit,
@@ -321,6 +339,8 @@ export const FetchProvider = ({ children }) => {
     displayMode,
     changeDisplayMode,
     getStationsToDisplay,
+
+    deleteFavorite,
   };
 
   return (

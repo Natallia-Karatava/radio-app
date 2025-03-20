@@ -4,6 +4,7 @@
   padding: 4rem 0rem 12rem 0rem;
 }
 .stations-list {
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-row: span 3;
@@ -12,6 +13,7 @@
 }
 
 .station-item {
+  position: relative;
   padding: 2rem 2rem 2rem 0rem;
   background: var(--search);
   border-radius: var(--border-radius-medium);
@@ -77,4 +79,25 @@
 .loading {
   margin: auto;
   text-align: center;
+}
+.delete-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  color: var(--brown);
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.stations-container.empty-favorites {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 2rem;
+  color: var(--brown);
+  font-size: 1.2rem;
 }
