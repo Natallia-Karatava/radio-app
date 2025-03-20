@@ -165,46 +165,72 @@ export const FetchProvider = ({ children }) => {
 
   // Audio control handlers
   const handleStationClick = async (station) => {
+    // First pause current playback if any
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = "";
     }
 
     setIsPlaying(false);
-    setErrorMessage("");
+    setErrorMessage(t("Loading..."));
+    setIsLoading(true);
 
     const streamUrl = station.urlResolved || station.url;
     if (!streamUrl) {
-      setErrorMessage(t("No valid stream URL found for this station"));
+      setIsLoading(false);
+      setErrorMessage(t("No valid stream URL found"));
       return;
     }
 
     const tryPlay = async (url) => {
       try {
         audioRef.current = new Audio(url);
+        let playbackStarted = false;
 
         audioRef.current.addEventListener("playing", () => {
+          playbackStarted = true;
           setIsPlaying(true);
+          setIsLoading(false);
           setCurrentStation(station);
+          setErrorMessage("");
           localStorage.setItem("lastPlayedStation", JSON.stringify(station));
         });
 
-        audioRef.current.addEventListener("pause", () => setIsPlaying(false));
+        audioRef.current.addEventListener("error", () => {
+          if (!playbackStarted) {
+            setIsPlaying(false);
+            setIsLoading(false);
+            setErrorMessage(
+              t("Cannot play this station. Please try another one.")
+            );
+            setCurrentStation(null);
+          }
+        });
 
         await audioRef.current.play();
       } catch (error) {
         if (url.startsWith("https://")) {
-          tryPlay(url.replace("https://", "http://"));
+          await tryPlay(url.replace("https://", "http://"));
         } else {
-          setIsPlaying(false);
-          setErrorMessage(
-            t("Cannot play this station. Please try another one.")
-          );
+          throw error;
         }
       }
     };
 
-    tryPlay(streamUrl);
+    try {
+      await tryPlay(streamUrl);
+    } catch (error) {
+      console.error("Station playback failed:", error);
+      setIsPlaying(false);
+      setIsLoading(false);
+      setCurrentStation(null);
+      setErrorMessage(t("Cannot play this station. Please try another one."));
+    }
   };
 
   const togglePlay = useCallback(() => {
@@ -221,6 +247,33 @@ export const FetchProvider = ({ children }) => {
           setIsPlaying(false);
           setErrorMessage(t("Playback error. Please try again."));
         });
+    }
+  }, [currentStation, isPlaying, t]);
+
+  const handlePlayPause = useCallback(() => {
+    if (!audioRef.current || !currentStation) return;
+
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            setErrorMessage("");
+          })
+          .catch((error) => {
+            console.error("Playback error:", error);
+            setIsPlaying(false);
+            setErrorMessage(t("Cannot resume playback. Please try again."));
+          });
+      }
+    } catch (error) {
+      console.error("PlayPause error:", error);
+      setIsPlaying(false);
+      setErrorMessage(t("Playback control failed"));
     }
   }, [currentStation, isPlaying, t]);
 
@@ -276,6 +329,11 @@ export const FetchProvider = ({ children }) => {
         audioRef.current.src = "";
       }
     };
+  }, []);
+
+  // Add effect to reset error message on mount
+  useEffect(() => {
+    setErrorMessage("");
   }, []);
 
   const getStationsToDisplay = useCallback(() => {
@@ -366,6 +424,7 @@ export const FetchProvider = ({ children }) => {
 
     deleteFavorite,
     getRandomStation,
+    handlePlayPause,
   };
 
   return (
