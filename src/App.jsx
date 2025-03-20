@@ -12,6 +12,9 @@ import PlayComponent from "./components/PlayComponent";
 import VolumeController from "./components/VolumeController";
 
 import FormRegistration from "./components/FormRegistration";
+import FormLogin from "./components/FormLogin";
+import FormPassworeForgot from "./components/FormPassworеForgot";
+import FormSettings from "./components/FormSettings";
 
 import { FetchContext } from "./contexts/FetchContext";
 import { useContext } from "react";
@@ -25,8 +28,17 @@ function App() {
       <RollingGallery autoplay={true} pauseOnHover={true} />
       <SearchButtons /> {/* Neue Komponente */}
       <StationsList />
-      <FormRegistration />
       <Footer />
+      {/* Delete */}
+      <FormLogin />
+      <hr />
+      <FormRegistration />
+      <hr />
+      <FormPassworeForgot />
+      <FormSettings />
+      <hr />
+      <Footer />
+      {/* Delete */}
       {/* 
       <PlayComponent />
       <VolumeController audio={audioRef.current} /> */}

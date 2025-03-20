@@ -20,10 +20,10 @@ const FormLogin = () => {
   };
 
   return (
-    <div className="login-form">
+    <div className="form">
       <div className="logo-container-form">
         <img src={logoFormLogin} alt="Logo" className="logo-form" />
-        <p className="info-text">
+        <p className="info-text text-sm">
           {t("Login is not required, but it will give you more features.")}
         </p>
       </div>
@@ -35,6 +35,7 @@ const FormLogin = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          className="input-form"
         />
         <input
           type="password"
@@ -42,12 +43,15 @@ const FormLogin = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className="input-form "
         />
 
-        <button onClick={handleLogin}>Login</button>
+        <button className="button" onClick={handleLogin}>
+          Login
+        </button>
 
         <div className="signup-link">
-          <span>{t("Don't have an account? ")}</span>
+          <span className="text-m">{t("Don't have an account? ")}</span>
           <button className="signup-button">{t("Sign Up")}</button>
         </div>
 
@@ -57,7 +61,9 @@ const FormLogin = () => {
           <hr className="divider" />
         </div>
 
-        <button onClick={handleGuestLogin}>{t("Continue as Guest")}</button>
+        <button className="button-secondary" onClick={handleGuestLogin}>
+          {t("Continue as Guest")}
+        </button>
       </div>
     </div>
   );
