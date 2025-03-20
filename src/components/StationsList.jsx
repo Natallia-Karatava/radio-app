@@ -9,7 +9,8 @@ const StationsList = () => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const {
-    displayedStations,
+    displayMode,
+    getStationsToDisplay,
     currentStation,
     isLoading,
     hasMore,
@@ -17,7 +18,7 @@ const StationsList = () => {
     previousPage,
     currentPage,
     setItemsPerPage,
-    handleStationClick,
+    stationGenre,
   } = useContext(FetchContext);
 
   useEffect(() => {
@@ -27,13 +28,13 @@ const StationsList = () => {
 
       if (width <= 480) {
         setItemsPerPage(6);
-        console.log("Mobile view:", width, "- 6 items");
+        // console.log("Mobile view:", width, "- 6 items");
       } else if (width <= 768) {
         setItemsPerPage(8);
-        console.log("Tablet view:", width, "- 8 items");
+        // console.log("Tablet view:", width, "- 8 items");
       } else {
         setItemsPerPage(12);
-        console.log("Desktop view:", width, "- 12 items");
+        // console.log("Desktop view:", width, "- 12 items");
       }
     };
 
@@ -42,11 +43,21 @@ const StationsList = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [setItemsPerPage]);
 
+  const stationsToDisplay = getStationsToDisplay();
+  const showPagination = displayMode === "all" && stationsToDisplay?.length > 0;
+
   return (
     <div className="stations-container">
-      <h2 className="h2">Radio station</h2>
+      <h2 className="h2">
+        {displayMode === "genre" && stationGenre
+          ? `${t("Radio Stations")} - ${t(stationGenre)}`
+          : displayMode === "favorites"
+          ? t("My Favorites")
+          : t("Radio Stations")}
+      </h2>
+      {isLoading && <div className="loading">{t("Loading...")}</div>}
       <div className="stations-list">
-        {displayedStations?.map((station) => (
+        {stationsToDisplay?.map((station) => (
           <div
             key={station.id}
             className={`station-item ${
@@ -78,22 +89,28 @@ const StationsList = () => {
         ))}
       </div>
 
-      <div className="pagination-controls">
-        {currentPage > 0 && (
-
-          <button className="button button-next-prev" onClick={previousPage}>
-         {t("Previous")}
-          </button>
-        )}
-        {hasMore && (
-          <button className="button button-next-prev" onClick={nextPage}>
-            {t("Next")}
-          </button>
-        )}
-
-      </div>
-
-      {isLoading && <div className="loading">{t("Loading...")}</div>}
+      {showPagination && (
+        <div className="pagination-controls">
+          {currentPage > 0 && (
+            <button
+              className="button button-next-prev"
+              onClick={previousPage}
+              disabled={isLoading}
+            >
+              {t("Previous")} {currentPage}
+            </button>
+          )}
+          {hasMore && (
+            <button
+              className="button button-next-prev"
+              onClick={nextPage}
+              disabled={isLoading}
+            >
+              {t("Next")} {currentPage + 2}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -10,7 +10,7 @@ import StationsList from "./components/StationsList";
 import Footer from "./components/Footer";
 import PlayComponent from "./components/PlayComponent";
 import VolumeController from "./components/VolumeController";
-
+import LikeComponent from "./components/LikeComponent";
 import FormRegistration from "./components/FormRegistration";
 import FormLogin from "./components/FormLogin";
 import FormPassworeForgot from "./components/FormPassworеForgot";
@@ -27,6 +27,7 @@ function App() {
       <Header />
       <RollingGallery autoplay={true} pauseOnHover={true} />
       <SearchButtons /> {/* Neue Komponente */}
+      <LikeComponent />
       <StationsList />
       <Footer />
       {/* Delete */}

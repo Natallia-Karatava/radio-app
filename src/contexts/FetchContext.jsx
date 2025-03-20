@@ -26,7 +26,7 @@ export const FetchProvider = ({ children }) => {
   // Station state
   const [stations, setStations] = useState([]);
   const [currentStation, setCurrentStation] = useState(null);
-  const [stationGenre, setStationGenre] = useState("all");
+  const [stationGenre, setStationGenre] = useState(null);
   const [filteredStations, setFilteredStations] = useState([]);
 
   // UI state
@@ -39,6 +39,43 @@ export const FetchProvider = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  //LikeComponent.jsx
+  const [favorites, setFavorites] = useState([]);
+  const [showFavorites, setShowFavorites] = useState(false);
+
+  const [displayMode, setDisplayMode] = useState("all"); // 'all', 'favorites', 'genre'
+
+  const like = useCallback(() => {
+    console.log("Like function called with current station:", currentStation);
+
+    if (!currentStation) {
+      console.log("No current station in context");
+      return;
+    }
+
+    setFavorites((prevFavorites) => {
+      const isExisting = prevFavorites.some(
+        (fav) => fav.id === currentStation.id
+      );
+      const newFavorites = isExisting
+        ? prevFavorites.filter((fav) => fav.id !== currentStation.id)
+        : [...prevFavorites, currentStation];
+
+      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
+      console.log("Updated favorites:", newFavorites);
+      return newFavorites;
+    });
+  }, [currentStation]);
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem("favouriteStations");
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+  }, []);
+  useEffect(() => {
+    console.log("Current favorites:", favorites);
+  }, [favorites]);
 
   // API setup and station fetching
   const setupApi = useCallback(
@@ -223,6 +260,24 @@ export const FetchProvider = ({ children }) => {
     };
   }, []);
 
+  const getStationsToDisplay = useCallback(() => {
+    switch (displayMode) {
+      case "favorites":
+        return favorites;
+      case "genre":
+        return displayedStations;
+      default:
+        return displayedStations;
+    }
+  }, [displayMode, favorites, displayedStations]);
+
+  const changeDisplayMode = useCallback((mode, genre = null) => {
+    setDisplayMode(mode);
+    if (genre) {
+      setStationGenre(genre);
+    }
+  }, []);
+
   const value = {
     // Station data
     stations,
@@ -239,6 +294,12 @@ export const FetchProvider = ({ children }) => {
     hasMore,
     audioRef,
 
+    // LikeComponent.jsx
+    favorites,
+    like,
+    showFavorites,
+    setShowFavorites,
+
     // Actions
     togglePlay,
     setIsPlaying,
@@ -254,6 +315,12 @@ export const FetchProvider = ({ children }) => {
     resetToDefaults,
     setItemsPerPage,
     handleStationClick,
+    setFavorites,
+
+    // Display mode
+    displayMode,
+    changeDisplayMode,
+    getStationsToDisplay,
   };
 
   return (
