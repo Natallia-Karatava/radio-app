@@ -15,5 +15,15 @@
   "confirm password*": "确认密码*",
   "Sign Up": "注册",
   "Sign In": "登录",
-  "Already registered? Login": "已经注册？登录"
+  "Already registered? Login": "已经注册？登录",
+  "Old username": "旧用户名",
+  "New username": "新用户名*",
+  "Enter password*": "输入密码*",
+  "Change Username": "更改用户名",
+  "Change Password": "更改密码",
+  "enter old password *": "输入旧密码*",
+  "enter new password *": "输入新密码*",
+  "Confirm new password *": "确认新密码*",
+  "Welcome to your radio app.": "欢迎使用您的广播应用。",
+  "Your sound, your mood, your radio!": "您的声音，您的心情，您的广播！"
 }

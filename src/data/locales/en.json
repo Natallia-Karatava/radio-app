@@ -15,5 +15,15 @@
   "confirm password*": "confirm password*",
   "Sign Up": "Sign Up",
   "Sign In": "Sign In",
-  "Already registered? Login": "Already registered? Login"
+  "Already registered? Login": "Already registered? Login",
+  "Old username": "Old username",
+  "New username": "New username*",
+  "Enter password*": "Enter password*",
+  "Change Username": "Change Username",
+  "Change Password": "Change Password",
+  "enter old password *": "enter old password *",
+  "enter new password *": "enter new password *",
+  "Confirm new password *": "Confirm new password *",
+  "Welcome to your radio app.": "Welcome to your radio app.",
+  "Your sound, your mood, your radio!": "Your sound, your mood, your radio!"
 }

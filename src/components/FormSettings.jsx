@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import "../styles/Form.css";
+import { useTranslation } from "react-i18next";
 
 const FormSettings = () => {
+  const { t } = useTranslation();
+
   const [activeTab, setActiveTab] = useState("username");
 
   // States for username tab
@@ -22,65 +25,65 @@ const FormSettings = () => {
           className={activeTab === "username" ? "tab active" : "tab"}
           onClick={() => setActiveTab("username")}
         >
-          Username
+          {t("Username")}
         </button>
         <button
           className={activeTab === "password" ? "tab active" : "tab"}
           onClick={() => setActiveTab("password")}
         >
-          Passwort
+          {t("Password")}
         </button>
       </div>
 
       {/* Username Tab */}
       {activeTab === "username" && (
         <div className="tab-content">
-          <h2>Change Username</h2>
+          <h2>{t("Change Username")}</h2>
           <input
             type="text"
             value={oldUsername}
             disabled
-            placeholder="Old username"
+            placeholder={t("Old username")}
           />
           <input
             type="text"
-            placeholder="New username*"
+            placeholder={t("New username*")}
             value={newUsername}
             onChange={(e) => setNewUsername(e.target.value)}
           />
           <input
             type="password"
-            placeholder="Enter password*"
+            placeholder={t("Enter password*")}
             value={passwordForUsername}
             onChange={(e) => setPasswordForUsername(e.target.value)}
           />
-          <button>Change Username</button>
+          <button>{t("Change Username")}</button>
         </div>
       )}
 
       {/* Password Tab */}
       {activeTab === "password" && (
         <div className="tab-content">
-          <h2>Change Password</h2>
+          <h2>{t("Change Password")}</h2>
           <input
             type="password"
-            placeholder="enter old password *"
+            placeholder={t("enter old password *")}
             value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
           />
           <input
             type="password"
-            placeholder="enter new password *"
+            placeholder={t("enter new password *")}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
           <input
             type="password"
-            placeholder="Confirm new password *"
+            placeholder={t("Confirm new password *")}
             value={confirmNewPassword}
             onChange={(e) => setConfirmNewPassword(e.target.value)}
           />
-          <button>Change Password</button>
+          <button>{t("Change Password")}</button>
         </div>
       )}
     </div>

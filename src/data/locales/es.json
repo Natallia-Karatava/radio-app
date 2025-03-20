@@ -19,5 +19,15 @@
   "confirm password*": "Confirmar contraseña*",
   "Sign Up": "Regístrate",
   "Sign In": "Iniciar sesión",
-  "Already registered? Login": "¿Ya estás registrado? Inicia sesión"
+  "Already registered? Login": "¿Ya estás registrado? Inicia sesión",
+  "Old username": "Nombre de usuario antiguo",
+  "New username": "Nombre de usuario nuevo*",
+  "Enter password*": "Introduce la contraseña*",
+  "Change Username": "Cambiar nombre de usuario",
+  "Change Password": "Cambiar contraseña",
+  "enter old password *": "introduce la contraseña antigua *",
+  "enter new password *": "introduce la contraseña nueva *",
+  "Confirm new password *": "Confirmar nueva contraseña *",
+  "Welcome to your radio app.": "Bienvenido a tu aplicación de radio.",
+  "Your sound, your mood, your radio!": "¡Tu sonido, tu estado de ánimo, tu radio!"
 }
