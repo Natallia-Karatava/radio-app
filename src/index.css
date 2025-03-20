@@ -4,7 +4,7 @@
   /* Color pallete variante */
   --primary: #67b095;
   --secondary: rgba(103, 176, 149, 0.5);
-  --black: #212121;
+  --black: #2b1909;
   --beige: #ffdbae;
   --search: rgba(255, 255, 255, 0.2);
   --brown: #24160a;
@@ -36,8 +36,9 @@ body {
   background-color: transparent;
   transition: all 0.8s cubic-bezier(0.23, 1, 0.320, 1);
   overflow: hidden;
+  color: var(--black)!important;
 }
-
+ 
 .button svg {
   font-size: 24px; /* Größere Icons */
   margin-right: 8px;
@@ -47,6 +48,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
+
   margin: auto;
   width: 73px;
   height: 50px;
