@@ -58,8 +58,8 @@ const StationsList = () => {
               <img src={station.favicon || img} alt="radiostation logo" />
             </div>
             <div className="station-description">
-              <h3>{station.name}</h3>
-              <p>
+              <p className="text-m">{station.name}</p>
+              <p className="text-xs">
                 {station.country}:{" "}
                 {Array.isArray(station.tags)
                   ? station.tags.join(", ")
@@ -70,7 +70,7 @@ const StationsList = () => {
                       .toLowerCase()
                   : station.tags}
               </p>
-              <p>
+              <p className="text-xs">
                 {station.codec} • {station.bitrate}kbps
               </p>
             </div>
@@ -80,9 +80,17 @@ const StationsList = () => {
 
       <div className="pagination-controls">
         {currentPage > 0 && (
-          <button onClick={previousPage}>{t("Previous")}</button>
+
+          <button className="button button-next-prev" onClick={previousPage}>
+         {t("Previous")}
+          </button>
         )}
-        {hasMore && <button onClick={nextPage}>{t("Next")}</button>}
+        {hasMore && (
+          <button className="button button-next-prev" onClick={nextPage}>
+            {t("Next")}
+          </button>
+        )}
+
       </div>
 
       {isLoading && <div className="loading">{t("Loading...")}</div>}
