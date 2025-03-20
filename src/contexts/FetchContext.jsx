@@ -72,7 +72,7 @@ export const FetchProvider = ({ children }) => {
         return uniqueStations;
       } catch (error) {
         console.error("Failed to fetch stations:", error);
-        setErrorMessage("Failed to fetch stations");
+        setErrorMessage(t("Failed to fetch stations"));
         return [];
       } finally {
         setIsLoading(false);
@@ -94,7 +94,7 @@ export const FetchProvider = ({ children }) => {
         setCurrentPage(page);
       } catch (error) {
         console.error("Pagination error:", error);
-        setErrorMessage("Error updating station list");
+        setErrorMessage(t("Error updating station list"));
       }
     },
     [itemsPerPage]
@@ -198,7 +198,7 @@ export const FetchProvider = ({ children }) => {
       } catch (error) {
         if (mounted) {
           setStations([]);
-          setErrorMessage("Failed to load stations");
+          setErrorMessage(t("Failed to load stations"));
         }
       }
     };
@@ -264,7 +264,7 @@ export const FetchProvider = ({ children }) => {
 export const useFetch = () => {
   const context = useContext(FetchContext);
   if (!context) {
-    throw new Error("useFetch must be used within a FetchProvider");
+    throw new Error(t("useFetch must be used within a FetchProvider"));
   }
   return context;
 };

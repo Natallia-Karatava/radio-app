@@ -78,11 +78,13 @@ const StationsList = () => {
       </div>
 
       <div className="pagination-controls">
-        {currentPage > 0 && <button onClick={previousPage}>Previous</button>}
-        {hasMore && <button onClick={nextPage}>Next</button>}
+        {currentPage > 0 && (
+          <button onClick={previousPage}>{t("Previous")}</button>
+        )}
+        {hasMore && <button onClick={nextPage}>{t("Next")}</button>}
       </div>
 
-      {isLoading && <div className="loading">Loading...</div>}
+      {isLoading && <div className="loading">{t("Loading...")}</div>}
     </div>
   );
 };

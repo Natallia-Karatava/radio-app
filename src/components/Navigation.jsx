@@ -1,13 +1,31 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaMoon, FaUserCircle, FaGlobe } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
+import i18next from "i18next";
+import { languageResources } from "../contexts/TranslateContext";
 
 import "../styles/Navigation.css";
 
 const Navigation = () => {
+  const { t, i18n } = useTranslation();
   const [showLanguages, setShowLanguages] = useState(false);
   const languageRef = useRef(null);
 
+  const languages = [
+    { code: "de", flag: "🇩🇪", name: t("German") },
+    { code: "en", flag: "🇺🇸", name: t("English") },
+    { code: "fr", flag: "🇫🇷", name: t("French") },
+    { code: "es", flag: "🇪🇸", name: t("Spanish") },
+    { code: "zh", flag: "🇨🇳", name: t("Chinese") },
+    { code: "ar", flag: "🇸🇦", name: t("Arabic") },
+  ];
+
   const toggleLanguages = () => setShowLanguages(!showLanguages);
+
+  const handleLanguageSelect = (langCode) => {
+    i18n.changeLanguage(langCode);
+    setShowLanguages(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,12 +54,17 @@ const Navigation = () => {
           <FaGlobe />
           {showLanguages && (
             <ul className="language-dropdown">
-              <li>🇩🇪 German</li>
-              <li>🇺🇸 English</li>
-              <li>🇫🇷 French</li>
-              <li>🇪🇸 Spanish</li>
-              <li>🇨🇳 Chinese</li>
-              <li>🇸🇦 Arabic</li>
+              {languages.map(({ code, flag, name }) => (
+                <li
+                  key={code}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLanguageSelect(code);
+                  }}
+                >
+                  {flag} {name}
+                </li>
+              ))}
             </ul>
           )}
         </div>
