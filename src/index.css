@@ -4,7 +4,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Fredoka', sans-serif;
+  font-family: "Fredoka", sans-serif;
 }
 
 html {
@@ -28,7 +28,7 @@ body {
   /* Color pallete variante */
   --primary: #67b095;
   --secondary: rgba(103, 176, 149, 0.5);
-  --black: #2b1909;
+  --black: #24160a;
   --beige: #ffdbae;
   --search: rgba(255, 255, 255, 0.2);
   --brown: #24160a;
@@ -37,16 +37,40 @@ body {
   --error: #d05d5b;
   --warning: #e7c05c;
 
-
-  --border-radius-small: 4px;
-  --border-radius-medium: 15px;
+  --border-radius-small: 10px;
+  --border-radius-medium: 25px;
   --border-radius-big: 50px;
 }
 
+/* Font size */
 
+h1 {
+  font-size: 6.4rem;
+}
+h2 {
+  font-size: 3.6rem;
+}
+h3 {
+  font-size: 2.8rem;
+}
+h4 {
+  font-size: 2rem;
+}
 
+.text-xl {
+  font-size: 1.8rem;
+}
+.text-l {
+  font-size: 1.6rem;
+}
+.text-m {
+  font-size: 1.4rem;
+}
+.text-sm {
+  font-size: 1.2rem;
+}
 
-
+/* Button style */
 .button {
   cursor: pointer;
   position: relative;
@@ -58,7 +82,7 @@ body {
   border: 2px solid var(--primary);
   border-radius: 34px;
 
-  transition: all 0.8s cubic-bezier(0.23, 1, 0.320, 1);
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
   overflow: hidden;
   color: var(--black);
 }
@@ -70,7 +94,7 @@ body {
 }
 
 .button::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
 
@@ -81,7 +105,7 @@ body {
   scale: 0;
   z-index: -1;
   background-color: var(--secondary);
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .button:hover::before {
@@ -90,7 +114,7 @@ body {
 
 .button:hover {
   color: var(--black);
-  scale: 1.00;
+  scale: 1;
 }
 
 .button:active {
@@ -137,6 +161,9 @@ body {
 
 /* Media Queries für Mobiltelefone (unter 768px) */
 @media screen and (max-width: 767px) {
+  h1 {
+    font-size: 4.8rem;
+  }
   .button {
     padding: 8px 16px;
     font-size: 14px;
