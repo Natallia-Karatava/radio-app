@@ -296,6 +296,30 @@ export const FetchProvider = ({ children }) => {
     }
   }, []);
 
+  const getRandomStation = useCallback(async () => {
+    try {
+      if (!stations || stations.length === 0) {
+        setErrorMessage(t("No stations available"));
+        return;
+      }
+
+      setIsLoading(true);
+      const randomIndex = Math.floor(Math.random() * stations.length);
+      const randomStation = stations[randomIndex];
+
+      if (randomStation) {
+        await handleStationClick(randomStation);
+        changeDisplayMode("all"); // Reset display mode to show all stations
+        console.log("Playing random station:", randomStation.name);
+      }
+    } catch (error) {
+      console.error("Error playing random station:", error);
+      setErrorMessage(t("Failed to play random station"));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [stations, handleStationClick, changeDisplayMode, setErrorMessage, t]);
+
   const value = {
     // Station data
     stations,
@@ -341,6 +365,7 @@ export const FetchProvider = ({ children }) => {
     getStationsToDisplay,
 
     deleteFavorite,
+    getRandomStation,
   };
 
   return (
