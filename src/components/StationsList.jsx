@@ -70,7 +70,6 @@ const StationsList = () => {
         <div className="empty-message">{t("No favorites yet")}</div>
       ) : (
         <>
-          {isLoading && <div className="loading">{t("Loading...")}</div>}
           <div className="stations-list">
             {stationsToDisplay?.map((station) => (
               <div
@@ -124,7 +123,7 @@ const StationsList = () => {
                   onClick={previousPage}
                   disabled={isLoading}
                 >
-                  {t("Previous")} {currentPage}
+                  {t("Previous")}
                 </button>
               )}
               {hasMore && (
@@ -133,7 +132,7 @@ const StationsList = () => {
                   onClick={nextPage}
                   disabled={isLoading}
                 >
-                  {t("Next")} {currentPage + 2}
+                  {t("Next")}
                 </button>
               )}
             </div>

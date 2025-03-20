@@ -1,5 +1,6 @@
 // Player.jsx
 import React, { useContext } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FaPlay,
   FaPause,
@@ -14,21 +15,17 @@ import { FetchContext } from "../contexts/FetchContext";
 import "../styles/Player.css";
 
 const Player = ({ audio }) => {
+  const { t } = useTranslation();
   const {
     currentStation,
     isLoading,
     isPlaying,
+    handlePlayPause,
+    errorMessage,
     togglePlay,
     handleStationClick,
     displayedStations,
-    errorMessage,
   } = useContext(FetchContext);
-
-  // Steuerung Play/Pause
-  const handlePlayPause = () => {
-    if (!currentStation || isLoading) return;
-    togglePlay();
-  };
 
   // Navigation zwischen Sendern
   const changeStation = (direction) => {
@@ -79,26 +76,27 @@ const Player = ({ audio }) => {
 
       {/* Now Playing Info Box */}
       <div className="now-playing-info">
-        {currentStation && (
-          <div className="station-content">
-            <div className="station-text">
-              {errorMessage ? (
-                <p className="error-message">{errorMessage}</p>
-              ) : (
-                currentStation && (
-                  <>
-                    <h3 title={currentStation.name}>
-                      {truncateStationName(currentStation.name)}
-                    </h3>
-                    <p className="station-country">{currentStation.country}</p>
-
-                    <p className="quality">
-                      {currentStation.codec} • {currentStation.bitrate}kbps
-                    </p>
-                  </>
-                )
-              )}
-            </div>
+        <div className="station-content">
+          <div className="station-text">
+            {isLoading ? (
+              <p className="message loading">{t("Loading...")}</p>
+            ) : errorMessage ? (
+              <p className="message error">{errorMessage}</p>
+            ) : currentStation ? (
+              <>
+                <h3 title={currentStation.name}>
+                  {truncateStationName(currentStation.name)}
+                </h3>
+                <p className="station-country">{currentStation.country}</p>
+                <p className="quality">
+                  {currentStation.codec} • {currentStation.bitrate}kbps
+                </p>
+              </>
+            ) : (
+              <p className="message select">{t("Select a station to play")}</p>
+            )}
+          </div>
+          {currentStation && (
             <div className="station-actions">
               <button className="action-button like-button">
                 <FaHeart size={24} />
@@ -110,8 +108,8 @@ const Player = ({ audio }) => {
                 <FaShare size={24} />
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Volume Controller */}
