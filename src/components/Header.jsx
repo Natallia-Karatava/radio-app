@@ -1,7 +1,9 @@
 import React from "react";
 import "../styles/Header.css";
+import { useTranslation } from "react-i18next";
 
 const Header = () => {
+  const { t } = useTranslation();
   return (
     <header className="header">
       <img
@@ -10,7 +12,8 @@ const Header = () => {
         alt="SoundPulse Logo"
       />
       <h2 className="title">
-        Willkommen bei deiner Radio App. <br /> Dein Sound, deine Stimmung, dein Radio!
+        {t("Welcome to your radio app.")} <br />{" "}
+        {t("Your sound, your mood, your radio!")}
       </h2>
     </header>
   );

@@ -15,5 +15,15 @@
   "confirm password*": "تأكيد كلمة المرور*",
   "Sign Up": "سجل",
   "Sign In": "تسجيل الدخول",
-  "Already registered? Login": "مسجل بالفعل؟ تسجيل الدخول"
+  "Already registered? Login": "مسجل بالفعل؟ تسجيل الدخول",
+  "Old username": "اسم المستخدم القديم",
+  "New username*": "اسم المستخدم الجديد*",
+  "Enter password*": "أدخل كلمة المرور*",
+  "Change Username": "تغيير اسم المستخدم",
+  "Change Password": "تغيير كلمة المرور",
+  "enter old password *": "أدخل كلمة المرور القديمة*",
+  "enter new password *": "أدخل كلمة المرور الجديدة*",
+  "Confirm new password *": "تأكيد كلمة المرور الجديدة*",
+  "Welcome to your radio app.": "مرحبًا بك في تطبيق الراديو الخاص بك.",
+  "Your sound, your mood, your radio!": "صوتك، مزاجك، راديوك!"
 }
