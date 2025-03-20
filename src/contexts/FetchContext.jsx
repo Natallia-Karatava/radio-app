@@ -85,12 +85,41 @@ export const FetchProvider = ({ children }) => {
     });
   }, []);
 
+  // Add new state for disliked stations
+  const [dislikedStations, setDislikedStations] = useState(() => {
+    const saved = localStorage.getItem("dislikedStations");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Add dislike handler
+  const handleDislike = useCallback((station) => {
+    if (!station) return;
+
+    setDislikedStations((prev) => {
+      const isDisliked = prev.some((s) => s.id === station.id);
+      const newDislikes = isDisliked
+        ? prev.filter((s) => s.id !== station.id)
+        : [...prev, station];
+
+      localStorage.setItem("dislikedStations", JSON.stringify(newDislikes));
+      console.log("Updated disliked stations:", newDislikes);
+      return newDislikes;
+    });
+  }, []);
+
+  // Add isDisliked check
+  const isDisliked = useCallback(
+    (stationId) => {
+      return dislikedStations.some((station) => station.id === stationId);
+    },
+    [dislikedStations]
+  );
+
   // API setup and station fetching
   const setupApi = useCallback(
     async (genre) => {
       try {
         setIsLoading(true);
-        // Use HTTPS instead of HTTP and specify a fixed server
         const api = new RadioBrowserApi(
           "https://de1.api.radio-browser.info",
           fetch.bind(window),
@@ -113,13 +142,16 @@ export const FetchProvider = ({ children }) => {
 
         const rawStations = await api.searchStations(searchParams);
 
-        // Filter unique stations
+        // Filter unique stations and exclude disliked ones
         const seenNames = new Set();
         const uniqueStations = rawStations.filter((station) => {
           if (!station.url || !station.name) return false;
           const duplicate = seenNames.has(station.name);
+          const isDislikedStation = dislikedStations.some(
+            (s) => s.id === station.id
+          );
           seenNames.add(station.name);
-          return !duplicate;
+          return !duplicate && !isDislikedStation;
         });
 
         setStations(uniqueStations);
@@ -133,7 +165,7 @@ export const FetchProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [lang, country, stationGenre, limit, codec, bitrate]
+    [lang, country, stationGenre, limit, codec, bitrate, dislikedStations] // Add dislikedStations to dependencies
   );
 
   // Pagination handlers
@@ -199,6 +231,7 @@ export const FetchProvider = ({ children }) => {
           setCurrentStation(station);
           setErrorMessage("");
           localStorage.setItem("lastPlayedStation", JSON.stringify(station));
+          console.log("Saved last played station:", station);
         });
 
         audioRef.current.addEventListener("error", () => {
@@ -336,6 +369,46 @@ export const FetchProvider = ({ children }) => {
     setErrorMessage("");
   }, []);
 
+  // Add this effect after other useEffect declarations
+  useEffect(() => {
+    const lastPlayedStation = localStorage.getItem("lastPlayedStation");
+    if (lastPlayedStation) {
+      const station = JSON.parse(lastPlayedStation);
+      console.log("Loaded last played station:", station);
+      setCurrentStation(station);
+      // Don't autoplay, just set the station info
+    } else {
+      console.log("No last played station found");
+    }
+  }, []);
+
+  // Add effect to log disliked stations changes
+  useEffect(() => {
+    console.log("Current disliked stations:", dislikedStations);
+  }, [dislikedStations]);
+
+  // Add effect to log initial disliked stations
+  useEffect(() => {
+    const savedDislikes = localStorage.getItem("dislikedStations");
+    if (savedDislikes) {
+      console.log(
+        "Loaded disliked stations from storage:",
+        JSON.parse(savedDislikes)
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (stations.length > 0) {
+      // Filter out disliked stations from current stations
+      const filteredStations = stations.filter(
+        (station) => !dislikedStations.some((s) => s.id === station.id)
+      );
+      setStations(filteredStations);
+      updateDisplayedStations(filteredStations, 0);
+    }
+  }, [dislikedStations]); // Re-run when disliked stations change
+
   const getStationsToDisplay = useCallback(() => {
     switch (displayMode) {
       case "favorites":
@@ -449,6 +522,11 @@ export const FetchProvider = ({ children }) => {
     getRandomStation,
     handlePlayPause,
     fetchTopStations,
+
+    // Dislike functionality
+    handleDislike,
+    isDisliked,
+    dislikedStations,
   };
 
   return (
