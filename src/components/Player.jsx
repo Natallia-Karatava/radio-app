@@ -1,9 +1,17 @@
 // Player.jsx
-import React, { useContext } from 'react';
-import { FaPlay, FaPause, FaStepBackward, FaStepForward, FaHeart, FaThumbsDown, FaShare } from 'react-icons/fa';
-import VolumeController from './VolumeController';
+import React, { useContext } from "react";
+import {
+  FaPlay,
+  FaPause,
+  FaStepBackward,
+  FaStepForward,
+  FaHeart,
+  FaThumbsDown,
+  FaShare,
+} from "react-icons/fa";
+import VolumeController from "./VolumeController";
 import { FetchContext } from "../contexts/FetchContext";
-import '../styles/Player.css';
+import "../styles/Player.css";
 
 const Player = ({ audio }) => {
   const {
@@ -13,6 +21,7 @@ const Player = ({ audio }) => {
     togglePlay,
     handleStationClick,
     displayedStations,
+    errorMessage,
   } = useContext(FetchContext);
 
   // Steuerung Play/Pause
@@ -59,30 +68,36 @@ const Player = ({ audio }) => {
   // Hilfsfunktion zum Kürzen des Stationsnamens
   const truncateStationName = (name) => {
     if (name.length > 28) {
-      return name.substring(0, 28) + '...';
+      return name.substring(0, 28) + "...";
     }
     return name;
   };
 
   return (
     <div className="player-container">
-      <img 
-        src="/player.webp" 
-        alt="Player" 
-        className="player-background" 
-      />
-      
+      <img src="/player.webp" alt="Player" className="player-background" />
+
       {/* Now Playing Info Box */}
       <div className="now-playing-info">
         {currentStation && (
           <div className="station-content">
             <div className="station-text">
-              <h3 title={currentStation.name}>{truncateStationName(currentStation.name)}</h3>
-              <p className="station-country">{currentStation.country}</p>
-              
-              <p className="quality">
-                {currentStation.codec} • {currentStation.bitrate}kbps
-              </p>
+              {errorMessage ? (
+                <p className="error-message">{errorMessage}</p>
+              ) : (
+                currentStation && (
+                  <>
+                    <h3 title={currentStation.name}>
+                      {truncateStationName(currentStation.name)}
+                    </h3>
+                    <p className="station-country">{currentStation.country}</p>
+
+                    <p className="quality">
+                      {currentStation.codec} • {currentStation.bitrate}kbps
+                    </p>
+                  </>
+                )
+              )}
             </div>
             <div className="station-actions">
               <button className="action-button like-button">
@@ -98,22 +113,22 @@ const Player = ({ audio }) => {
           </div>
         )}
       </div>
-      
+
       {/* Volume Controller */}
       <div className="volume-controller-position">
         <VolumeController audio={audio} />
       </div>
-      
+
       {/* Play Controls */}
-      <button 
+      <button
         className="previous-button"
         onClick={() => changeStation(-1)}
         disabled={!currentStation || isLoading}
       >
         <FaStepBackward size={24} />
       </button>
-      
-      <button 
+
+      <button
         className="play-button"
         onClick={handlePlayPause}
         disabled={!currentStation || isLoading}
@@ -124,8 +139,8 @@ const Player = ({ audio }) => {
           <FaPlay size={30} className="fa-play" />
         )}
       </button>
-      
-      <button 
+
+      <button
         className="next-button"
         onClick={() => changeStation(1)}
         disabled={!currentStation || isLoading}
