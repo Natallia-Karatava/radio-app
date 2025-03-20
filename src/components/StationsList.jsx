@@ -63,6 +63,8 @@ const StationsList = () => {
           ? `${t("Radio Stations")} - ${t(stationGenre)}`
           : displayMode === "favorites"
           ? t("My Favorites")
+          : displayMode === "topvote"
+          ? t("Popular Channels")
           : t("Radio Stations")}
       </h2>
 
@@ -115,7 +117,7 @@ const StationsList = () => {
             ))}
           </div>
 
-          {showPagination && (
+          {showPagination && displayMode !== "topvote" && (
             <div className="pagination-controls">
               {currentPage > 0 && (
                 <button
