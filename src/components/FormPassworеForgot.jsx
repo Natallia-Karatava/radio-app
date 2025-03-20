@@ -21,7 +21,7 @@ const FormPasswortForgot = () => {
   };
 
   return (
-    <div className="login-form">
+    <div className="form">
       <div className="logo-container-form">
         <img src={logoFormPassForgot} alt="Logo" className="logo-form" />
       </div>
@@ -33,11 +33,12 @@ const FormPasswortForgot = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="input-form"
         />
 
         {message && <p className="info-text-forgot-pass">{message}</p>}
 
-        <button onClick={handleSend}>
+        <button className="button" onClick={handleSend}>
           {t("Send username & password to email")}
         </button>
       </div>

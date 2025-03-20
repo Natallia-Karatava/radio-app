@@ -4,27 +4,40 @@
 
 .logo-form {
   width: 250px;
+  margin-bottom: 2rem;
 }
-
-/* ===== login Form style =====*/
-.login-form {
+/* All */
+.form {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 3rem;
   z-index: 100;
 }
 
+.input-form {
+  margin-bottom: 0.5rem;
+  padding: 1.4rem 2rem;
+  display: block;
+  text-align: start;
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-medium);
+  background-color: var(--search);
+  color: var(--black);
+}
+
+/* ===== login Form style =====*/
+
 .info-text {
-  margin-top: 1rem;
-  font-size: 1rem;
+  margin: 1rem;
   color: var(--black);
 }
 
 .form-container-login {
   display: flex;
   flex-direction: column;
+  text-align: center;
   gap: 1.5rem;
   width: 100%;
   max-width: 400px;
@@ -82,32 +95,27 @@
 
 /* Form Settings */
 .account-settings {
-  width: 60%;
+  /* width: 100%; */
 }
+
 .tabs {
   display: flex;
+  gap: 2rem;
   margin-bottom: 20px;
 }
 
-.tab {
-  padding: 10px 20px;
-  cursor: pointer;
-  background: #f0f0f0;
-  border: none;
-  margin-right: 10px;
-}
-
-.tab.active {
+.bitton.active {
   background: var(--primary);
-  color: var(--white);
+  color: var(--black);
+  border-radius: var(--border-radius-medium);
 }
 
 .tab-content {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
-.tab-content input {
-  margin-bottom: 10px;
-  padding: 10px;
+.title-tab-content {
+  margin-bottom: 2rem;
 }

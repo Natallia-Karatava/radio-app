@@ -3,7 +3,7 @@
   justify-content: flex-end;
   align-items: center;
   padding: 0.5rem 4rem;
-  background: white;
+  background: var(--beige);
   height: 60px;
   position: relative;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -31,7 +31,7 @@
   list-style: none;
   padding: 0.5rem;
   margin: 0;
-  background: white;
+  background: var(--white);
   color: var(--black);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 8px;

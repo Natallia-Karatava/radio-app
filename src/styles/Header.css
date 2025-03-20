@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500&display=swap");
 
 .header {
   display: flex;
@@ -11,13 +11,13 @@
 
 .logo {
   width: 400px;
- }
+}
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 500;
-  color: #212121;
-  font-family: 'Fredoka', sans-serif;
-  margin-bottom: 50px;
+  color: var(--black);
+  font-family: "Fredoka", sans-serif;
+  margin-bottom: 4rem;
   text-align: center;
 }

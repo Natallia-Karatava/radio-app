@@ -34,7 +34,7 @@ const SearchButtons = () => {
           {isDropdownOpen && (
             <div className="dropdown-menu">
               <div className="filter-field">
-                <label>{t("Channel name:")}</label>
+                <label className="text-sm">{t("Channel name:")}</label>
                 <input type="text" placeholder={t("Enter station name")} />
               </div>
               <div className="filter-field">
