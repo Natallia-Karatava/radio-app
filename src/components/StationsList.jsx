@@ -43,7 +43,8 @@ const StationsList = () => {
   }, [setItemsPerPage]);
 
   return (
-    <div>
+    <div className="stations-container">
+      <h2 className="h2">Radio station</h2>
       <div className="stations-list">
         {displayedStations?.map((station) => (
           <div

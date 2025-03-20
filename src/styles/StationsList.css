@@ -1,15 +1,19 @@
+.stations-container {
+  width: 90%;
+  margin: auto;
+  padding: 4rem 0rem;
+}
 .stations-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-row: span 3;
   gap: 2rem;
-  width: 90%;
-  margin: auto;
 }
 
 .station-item {
   padding: 2rem;
-  background: buttonface;
+  background: var(--search);
+  border-radius: 25px;
   display: grid;
   grid-template-columns: 30% 70%;
   grid-template-rows: subgrid;
@@ -23,7 +27,7 @@
   align-items: center;
   grid-row: span 3;
   img {
-    width: 80%;
+    width: 70%;
     height: auto;
   }
 }
