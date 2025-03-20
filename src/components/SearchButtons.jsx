@@ -1,17 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { FaHeart, FaRandom, FaFilter, FaSearch, FaStar } from "react-icons/fa";
 import "../styles/SearchButtons.css";
 import { useTranslation } from "react-i18next";
+import { FetchContext } from "../contexts/FetchContext";
 
 const SearchButtons = () => {
   const { t } = useTranslation();
+  const { setShowFavorites, changeDisplayMode, displayMode } =
+    useContext(FetchContext);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <div className="search-buttons-container">
       <div className="top-buttons">
-        <button className="button">
+        <button
+          className={`button ${displayMode === "favorites" ? "active" : ""}`}
+          onClick={() => changeDisplayMode("favorites")}
+        >
           <FaHeart size={24} /> {t("My favorites")}
         </button>
         <button className="button">
