@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/Form.css";
 import logoFormRegistration from "../images/logos/SoundPulse_green.png";
 import { useTranslation } from "react-i18next";
@@ -8,7 +8,7 @@ import { useUser } from "../contexts/UserContext.jsx";
 
 const FormRegistration = ({ onClose, onSwitchToLogin }) => {
   const { t } = useTranslation();
-  const { setUser } = useUser();
+  const { setUser } = useUser(); // Доступ к функции setUser из контекста
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,7 +17,7 @@ const FormRegistration = ({ onClose, onSwitchToLogin }) => {
   const [status, setStatus] = useState({ message: "", type: "" });
 
   useEffect(() => {
-    // If the data already exists in localStorage, you can set it to state
+    // Если данные пользователя уже сохранены в localStorage, устанавливаем их в state
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       const { username, email } = JSON.parse(savedUser);
@@ -31,35 +31,37 @@ const FormRegistration = ({ onClose, onSwitchToLogin }) => {
       setError(t("Password doesn't match."));
       return;
     }
-    setError("");
-    // Logic for registration
+    setError(""); // Очищаем ошибку
+
     const newUser = { username, email, password };
 
     try {
-      // Send an email via emailjs
+      // Сначала пробуем отправить email
       await sendEmail(newUser);
 
-      // Save user data in localStorage and in context
+      // Если все прошло успешно, сохраняем данные пользователя в context и localStorage
       setUser(newUser);
-
-      // Save data to localStorage
       localStorage.setItem("user", JSON.stringify(newUser));
 
-      // Clear fields after successful registration
-      setUsername(" ");
-      setPassword(" ");
+      // Очистка полей после успешной регистрации
+      setUsername("");
+      setPassword("");
       setConfirmPassword("");
       setEmail("");
 
-      setStatus({ message: "Registration successful!", type: "success" });
+      // Устанавливаем статус успешной регистрации
+      setStatus({ message: t("Registration successful!"), type: "success" });
 
-      // Close the modal window after successful registration
+      // Закрытие модального окна через 2 секунды
       setTimeout(() => {
         onClose();
-      }, 2000); // Closing after 2 seconds
+      }, 2000);
     } catch (error) {
+      console.error("Registration failed:", error); // Логируем ошибку
+
+      // Если произошла ошибка при регистрации или отправке email
       setStatus({
-        message: "Registration failed. Please try again.",
+        message: t("Registration failed. Please try again."),
         type: "error",
       });
     }
@@ -81,17 +83,13 @@ const FormRegistration = ({ onClose, onSwitchToLogin }) => {
         "LIWb9KtXvMfuCxiqy"
       );
 
-      if (result.status === 200) {
-        console.log("Email sent successfully");
-      } else {
-        throw new Error("Email sending failed.");
+      if (result.status !== 200) {
+        throw new Error("Failed to send email."); // Если отправка email не прошла
       }
+      console.log("Email sent successfully");
     } catch (error) {
       console.error("Failed to send email:", error);
-      setStatus({
-        message: "Failed to send confirmation email. Please try again.",
-        type: "error",
-      });
+      throw new Error("Email sending failed.");
     }
   };
 
