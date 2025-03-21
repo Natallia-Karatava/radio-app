@@ -17,11 +17,11 @@ import ReactDOM from "react-dom";
 export const FetchContext = createContext(null);
 
 // Export the hook
-export const useFetch = () => {
+export const UseFetch = () => {
   const { t } = useTranslation();
   const context = useContext(FetchContext);
   if (!context) {
-    throw new Error(t("useFetch must be used within a FetchProvider"));
+    throw new Error(t("UseFetch must be used within a FetchProvider"));
   }
   return context;
 };
@@ -375,62 +375,44 @@ export const FetchProvider = ({ children }) => {
   }, []);
 
   const handleStationClick = async (station) => {
-    if (isChangingStation) return; // Prevent multiple clicks during station change
+    if (isChangingStation) return;
 
     try {
       setIsChangingStation(true);
-      debouncedSetError(t("Loading..."));
       setIsLoading(true);
+      debouncedSetError("");
 
-      // Stop and cleanup current audio
+      // Stop current playback
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
-        // Remove all existing event listeners
-        audioRef.current.removeEventListener("playing", null);
-        audioRef.current.removeEventListener("error", null);
       }
 
       setIsPlaying(false);
 
       const streamUrl = station.urlResolved || station.url;
       if (!streamUrl) {
-        setIsLoading(false);
-        debouncedSetError(t("No valid stream URL found"));
-        return;
+        throw new Error("No valid stream URL found");
       }
 
       const tryPlay = async (url) => {
         try {
           const audio = new Audio(url);
-          let playbackStarted = false;
 
-          const onPlaying = () => {
-            playbackStarted = true;
-            setIsPlaying(true);
-            setIsLoading(false);
-            setCurrentStation(station);
-            debouncedSetError("");
-            saveToStorage("lastPlayedStation", station);
-            console.log("Saved last played station:", station);
-          };
+          // Set a timeout for loading attempt
+          const loadPromise = new Promise((resolve, reject) => {
+            audio.addEventListener("canplay", resolve, { once: true });
+            audio.addEventListener("error", reject, { once: true });
+            setTimeout(() => reject(new Error("Loading timeout")), 5000);
+          });
 
-          const onError = () => {
-            if (!playbackStarted) {
-              setIsPlaying(false);
-              setIsLoading(false);
-              debouncedSetError(
-                t("Cannot play this station. Please try another one.")
-              );
-              setCurrentStation(null);
-            }
-          };
-
-          audio.addEventListener("playing", onPlaying);
-          audio.addEventListener("error", onError);
-
+          await loadPromise;
           audioRef.current = audio;
           await audio.play();
+
+          setCurrentStation(station);
+          saveToStorage("lastPlayedStation", station);
+          setIsPlaying(true);
         } catch (error) {
           if (url.startsWith("https://")) {
             await tryPlay(url.replace("https://", "http://"));
@@ -444,10 +426,12 @@ export const FetchProvider = ({ children }) => {
     } catch (error) {
       console.error("Station playback failed:", error);
       setIsPlaying(false);
-      setIsLoading(false);
       setCurrentStation(null);
-      debouncedSetError(t("Cannot play this station. Please try another one."));
+      debouncedSetError(t("Cannot play this station. Try next station."));
+      // Automatically try next station on failure
+      changeStation(1);
     } finally {
+      setIsLoading(false);
       setIsChangingStation(false);
     }
   };
