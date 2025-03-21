@@ -22,7 +22,7 @@
   left: 14%;
   width: 53%;
   height: 29%;
-  
+
   border-radius: 8px;
   padding: 15px;
   display: flex;
@@ -113,7 +113,6 @@
   transition: background-color 0.3s;
 }
 
-
 .play-button:disabled,
 .previous-button:disabled,
 .next-button:disabled {
@@ -146,8 +145,6 @@
   transition: background-color 0.3s;
 }
 
-
-
 /* Next Button */
 .next-button {
   position: absolute;
@@ -167,32 +164,34 @@
   transition: background-color 0.3s;
 }
 
-
 /* Responsive Anpassungen */
 @media screen and (max-width: 768px) {
   .player-container {
     width: 90%;
   }
-  
+
   .station-text h3 {
     font-size: 1rem;
   }
-  
+
   .station-text p {
     font-size: 0.8rem;
   }
-  
-  .play-button, .previous-button, .next-button {
+
+  .play-button,
+  .previous-button,
+  .next-button {
     width: 40px;
     height: 40px;
   }
-  
+
   .play-button svg {
     width: 20px;
     height: 20px;
   }
-  
-  .previous-button svg, .next-button svg {
+
+  .previous-button svg,
+  .next-button svg {
     width: 16px;
     height: 16px;
   }
@@ -202,12 +201,36 @@
   .player-container {
     width: 95%;
   }
-  
+
   .station-text h3 {
     font-size: 0.9rem;
   }
-  
+
   .station-text p {
     font-size: 0.7rem;
   }
+}
+
+/*-----------------------------------*/
+.socialShare {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-width: 300px;
+}
+.socialShare button {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.socialShare button:hover {
+  transform: scale(1.1);
 }

@@ -58,11 +58,13 @@ const StationsList = () => {
 
   return (
     <div className={`stations-container ${isEmpty ? "empty-favorites" : ""}`}>
-      <h2 className="h2">
+      <h2 className="h2 text-center">
         {displayMode === "genre" && stationGenre
           ? `${t("Radio Stations")} - ${t(stationGenre)}`
           : displayMode === "favorites"
           ? t("My Favorites")
+          : displayMode === "topvote"
+          ? t("Top-5 Channels")
           : t("Radio Stations")}
       </h2>
 
@@ -70,7 +72,6 @@ const StationsList = () => {
         <div className="empty-message">{t("No favorites yet")}</div>
       ) : (
         <>
-          {isLoading && <div className="loading">{t("Loading...")}</div>}
           <div className="stations-list">
             {stationsToDisplay?.map((station) => (
               <div
@@ -116,7 +117,7 @@ const StationsList = () => {
             ))}
           </div>
 
-          {showPagination && (
+          {showPagination && displayMode !== "topvote" && (
             <div className="pagination-controls">
               {currentPage > 0 && (
                 <button
@@ -124,7 +125,7 @@ const StationsList = () => {
                   onClick={previousPage}
                   disabled={isLoading}
                 >
-                  {t("Previous")} {currentPage}
+                  {t("Previous")}
                 </button>
               )}
               {hasMore && (
@@ -133,7 +134,7 @@ const StationsList = () => {
                   onClick={nextPage}
                   disabled={isLoading}
                 >
-                  {t("Next")} {currentPage + 2}
+                  {t("Next")}
                 </button>
               )}
             </div>

@@ -1,7 +1,10 @@
 .stations-container {
   width: 90%;
   margin: auto;
-  padding: 4rem 0rem 12rem 0rem;
+  padding: 12rem 0rem 12rem 0rem;
+}
+.text-center {
+  text-align: center;
 }
 .stations-list {
   width: 100%;
@@ -17,6 +20,7 @@
   padding: 2rem 2rem 2rem 0rem;
   background: var(--search);
   border-radius: var(--border-radius-medium);
+  border: 2px solid var(--primary);
   display: grid;
   grid-template-columns: 30% 70%;
   cursor: pointer;

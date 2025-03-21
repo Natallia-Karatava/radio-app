@@ -34,6 +34,13 @@ const IMGS = [
   rock,
 ];
 
+const getDragFactor = () => {
+  if (window.innerWidth >= 1440) return 0.02;
+  if (window.innerWidth >= 1024) return 0.015;
+  if (window.innerWidth >= 768) return 0.012;
+  return 0.01;
+};
+
 const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
   const { setStationGenre, changeDisplayMode } = useContext(FetchContext);
   const containerRef = useRef(null);
@@ -42,22 +49,51 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
     window.innerWidth <= 640
   );
 
-  // Layout calculations
-  const SINGLE_IMAGE_WIDTH = 100;
-  const MIN_SPACING = 20;
+  // Layout calculations - updated
+  const SINGLE_IMAGE_WIDTH =
+    window.innerWidth >= 1440
+      ? 160
+      : window.innerWidth >= 1024
+      ? 140
+      : window.innerWidth >= 768
+      ? 120
+      : 100;
+
+  const MIN_SPACING = 10; // Fixed 10px spacing
   const baseWidth = containerWidth;
   const circumference = Math.PI * baseWidth;
-  const optimalImageCount = Math.floor(
-    circumference / (SINGLE_IMAGE_WIDTH + MIN_SPACING)
-  );
+
+  // Updated optimal count calculation
+  const calculateOptimalCount = () => {
+    const minImages =
+      window.innerWidth >= 1440
+        ? 16
+        : window.innerWidth >= 1024
+        ? 14
+        : window.innerWidth >= 768
+        ? 12
+        : 10;
+    const maxImages = IMGS.length * 3; // Increased maximum images for larger screens
+
+    // Calculate based on circumference and fixed spacing
+    const count = Math.floor(
+      circumference / (SINGLE_IMAGE_WIDTH + MIN_SPACING)
+    );
+
+    // Ensure count is within bounds and is even
+    return Math.max(minImages, Math.min(maxImages, Math.floor(count / 2) * 2));
+  };
+
+  const optimalImageCount = calculateOptimalCount();
   const repeatedImages = Array(optimalImageCount)
     .fill(0)
     .map((_, index) => IMGS[index % IMGS.length]);
+
   const faceCount = repeatedImages.length;
   const faceWidth = SINGLE_IMAGE_WIDTH;
-  const spacing = (circumference - faceCount * SINGLE_IMAGE_WIDTH) / faceCount;
+  const spacing = MIN_SPACING; // Use fixed spacing
   const radius = baseWidth / 2;
-  const dragFactor = 0.01;
+  const dragFactor = getDragFactor();
 
   // Motion controls
   const rotation = useMotionValue(0);
@@ -155,7 +191,7 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
   }, [autoplay, controls]);
 
   return (
-    <div className="gallery-container" ref={containerRef}>
+    <div className="gallery-container padding-section" ref={containerRef}>
       <div className="gallery-gradient gallery-gradient-left" />
       <div className="gallery-gradient gallery-gradient-right" />
       <div className="gallery-content">

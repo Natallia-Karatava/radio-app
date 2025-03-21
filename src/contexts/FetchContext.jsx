@@ -85,12 +85,41 @@ export const FetchProvider = ({ children }) => {
     });
   }, []);
 
+  // Add new state for disliked stations
+  const [dislikedStations, setDislikedStations] = useState(() => {
+    const saved = localStorage.getItem("dislikedStations");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Add dislike handler
+  const handleDislike = useCallback((station) => {
+    if (!station) return;
+
+    setDislikedStations((prev) => {
+      const isDisliked = prev.some((s) => s.id === station.id);
+      const newDislikes = isDisliked
+        ? prev.filter((s) => s.id !== station.id)
+        : [...prev, station];
+
+      localStorage.setItem("dislikedStations", JSON.stringify(newDislikes));
+      console.log("Updated disliked stations:", newDislikes);
+      return newDislikes;
+    });
+  }, []);
+
+  // Add isDisliked check
+  const isDisliked = useCallback(
+    (stationId) => {
+      return dislikedStations.some((station) => station.id === stationId);
+    },
+    [dislikedStations]
+  );
+
   // API setup and station fetching
   const setupApi = useCallback(
     async (genre) => {
       try {
         setIsLoading(true);
-        // Use HTTPS instead of HTTP and specify a fixed server
         const api = new RadioBrowserApi(
           "https://de1.api.radio-browser.info",
           fetch.bind(window),
@@ -113,13 +142,16 @@ export const FetchProvider = ({ children }) => {
 
         const rawStations = await api.searchStations(searchParams);
 
-        // Filter unique stations
+        // Filter unique stations and exclude disliked ones
         const seenNames = new Set();
         const uniqueStations = rawStations.filter((station) => {
           if (!station.url || !station.name) return false;
           const duplicate = seenNames.has(station.name);
+          const isDislikedStation = dislikedStations.some(
+            (s) => s.id === station.id
+          );
           seenNames.add(station.name);
-          return !duplicate;
+          return !duplicate && !isDislikedStation;
         });
 
         setStations(uniqueStations);
@@ -133,7 +165,7 @@ export const FetchProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [lang, country, stationGenre, limit, codec, bitrate]
+    [lang, country, stationGenre, limit, codec, bitrate, dislikedStations] // Add dislikedStations to dependencies
   );
 
   // Pagination handlers
@@ -164,63 +196,110 @@ export const FetchProvider = ({ children }) => {
   }, [currentPage, stations, updateDisplayedStations]);
 
   // Audio control handlers
+  const [isChangingStation, setIsChangingStation] = useState(false); // Add this state
+
   const handleStationClick = async (station) => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
+    if (isChangingStation) return; // Prevent multiple clicks during station change
 
-    setIsPlaying(false);
-    setErrorMessage("");
+    try {
+      setIsChangingStation(true);
+      setErrorMessage(t("Loading..."));
+      setIsLoading(true);
 
-    const streamUrl = station.urlResolved || station.url;
-    if (!streamUrl) {
-      setErrorMessage(t("No valid stream URL found for this station"));
-      return;
-    }
-
-    const tryPlay = async (url) => {
-      try {
-        audioRef.current = new Audio(url);
-
-        audioRef.current.addEventListener("playing", () => {
-          setIsPlaying(true);
-          setCurrentStation(station);
-          localStorage.setItem("lastPlayedStation", JSON.stringify(station));
-        });
-
-        audioRef.current.addEventListener("pause", () => setIsPlaying(false));
-
-        await audioRef.current.play();
-      } catch (error) {
-        if (url.startsWith("https://")) {
-          tryPlay(url.replace("https://", "http://"));
-        } else {
-          setIsPlaying(false);
-          setErrorMessage(
-            t("Cannot play this station. Please try another one.")
-          );
-        }
+      // Stop and cleanup current audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        // Remove all existing event listeners
+        audioRef.current.removeEventListener("playing", null);
+        audioRef.current.removeEventListener("error", null);
       }
-    };
 
-    tryPlay(streamUrl);
+      setIsPlaying(false);
+
+      const streamUrl = station.urlResolved || station.url;
+      if (!streamUrl) {
+        setIsLoading(false);
+        setErrorMessage(t("No valid stream URL found"));
+        return;
+      }
+
+      const tryPlay = async (url) => {
+        try {
+          const audio = new Audio(url);
+          let playbackStarted = false;
+
+          const onPlaying = () => {
+            playbackStarted = true;
+            setIsPlaying(true);
+            setIsLoading(false);
+            setCurrentStation(station);
+            setErrorMessage("");
+            localStorage.setItem("lastPlayedStation", JSON.stringify(station));
+            console.log("Saved last played station:", station);
+          };
+
+          const onError = () => {
+            if (!playbackStarted) {
+              setIsPlaying(false);
+              setIsLoading(false);
+              setErrorMessage(
+                t("Cannot play this station. Please try another one.")
+              );
+              setCurrentStation(null);
+            }
+          };
+
+          audio.addEventListener("playing", onPlaying);
+          audio.addEventListener("error", onError);
+
+          audioRef.current = audio;
+          await audio.play();
+        } catch (error) {
+          if (url.startsWith("https://")) {
+            await tryPlay(url.replace("https://", "http://"));
+          } else {
+            throw error;
+          }
+        }
+      };
+
+      await tryPlay(streamUrl);
+    } catch (error) {
+      console.error("Station playback failed:", error);
+      setIsPlaying(false);
+      setIsLoading(false);
+      setCurrentStation(null);
+      setErrorMessage(t("Cannot play this station. Please try another one."));
+    } finally {
+      setIsChangingStation(false);
+    }
   };
 
-  const togglePlay = useCallback(() => {
-    if (!currentStation) return;
+  const handlePlayPause = useCallback(() => {
+    if (!audioRef.current || !currentStation) return;
 
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((error) => {
-          console.error("Playback error:", error);
-          setIsPlaying(false);
-          setErrorMessage(t("Playback error. Please try again."));
-        });
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            setErrorMessage("");
+          })
+          .catch((error) => {
+            console.error("Playback error:", error);
+            setIsPlaying(false);
+            setErrorMessage(t("Cannot resume playback. Please try again."));
+          });
+      }
+    } catch (error) {
+      console.error("PlayPause error:", error);
+      setIsPlaying(false);
+      setErrorMessage(t("Playback control failed"));
     }
   }, [currentStation, isPlaying, t]);
 
@@ -278,6 +357,58 @@ export const FetchProvider = ({ children }) => {
     };
   }, []);
 
+  // Add effect to reset error message on mount
+  useEffect(() => {
+    setErrorMessage("");
+  }, []);
+
+  // Add this effect after other useEffect declarations
+  useEffect(() => {
+    const lastPlayedStation = localStorage.getItem("lastPlayedStation");
+    if (lastPlayedStation) {
+      const station = JSON.parse(lastPlayedStation);
+      console.log("Loaded last played station:", station);
+      setCurrentStation(station);
+
+      // Initialize audio source without autoplay
+      const streamUrl = station.urlResolved || station.url;
+      if (streamUrl && audioRef.current) {
+        audioRef.current.src = streamUrl;
+        // Pre-load the audio
+        audioRef.current.load();
+      }
+    } else {
+      console.log("No last played station found");
+    }
+  }, []);
+
+  // Add effect to log disliked stations changes
+  useEffect(() => {
+    console.log("Current disliked stations:", dislikedStations);
+  }, [dislikedStations]);
+
+  // Add effect to log initial disliked stations
+  useEffect(() => {
+    const savedDislikes = localStorage.getItem("dislikedStations");
+    if (savedDislikes) {
+      console.log(
+        "Loaded disliked stations from storage:",
+        JSON.parse(savedDislikes)
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (stations.length > 0) {
+      // Filter out disliked stations from current stations
+      const filteredStations = stations.filter(
+        (station) => !dislikedStations.some((s) => s.id === station.id)
+      );
+      setStations(filteredStations);
+      updateDisplayedStations(filteredStations, 0);
+    }
+  }, [dislikedStations]); // Re-run when disliked stations change
+
   const getStationsToDisplay = useCallback(() => {
     switch (displayMode) {
       case "favorites":
@@ -295,6 +426,53 @@ export const FetchProvider = ({ children }) => {
       setStationGenre(genre);
     }
   }, []);
+
+  const getRandomStation = useCallback(async () => {
+    try {
+      if (!stations || stations.length === 0) {
+        setErrorMessage(t("No stations available"));
+        return;
+      }
+
+      setIsLoading(true);
+      const randomIndex = Math.floor(Math.random() * stations.length);
+      const randomStation = stations[randomIndex];
+
+      if (randomStation) {
+        await handleStationClick(randomStation);
+        changeDisplayMode("all"); // Reset display mode to show all stations
+        console.log("Playing random station:", randomStation.name);
+      }
+    } catch (error) {
+      console.error("Error playing random station:", error);
+      setErrorMessage(t("Failed to play random station"));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [stations, handleStationClick, changeDisplayMode, setErrorMessage, t]);
+
+  const fetchTopStations = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        "https://at1.api.radio-browser.info/json/stations/topvote/5"
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch top stations");
+      }
+
+      const data = await response.json();
+      setStations(data);
+      updateDisplayedStations(data, 0);
+      setCurrentPage(0);
+    } catch (error) {
+      console.error("Error fetching top stations:", error);
+      setErrorMessage(t("Failed to fetch top stations"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const value = {
     // Station data
@@ -319,7 +497,6 @@ export const FetchProvider = ({ children }) => {
     setShowFavorites,
 
     // Actions
-    togglePlay,
     setIsPlaying,
     setCurrentStation,
     setStationGenre,
@@ -341,6 +518,14 @@ export const FetchProvider = ({ children }) => {
     getStationsToDisplay,
 
     deleteFavorite,
+    getRandomStation,
+    handlePlayPause,
+    fetchTopStations,
+
+    // Dislike functionality
+    handleDislike,
+    isDisliked,
+    dislikedStations,
   };
 
   return (

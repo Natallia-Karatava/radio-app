@@ -27,13 +27,9 @@ function App() {
       <Navigation />
       <Header />
       <RollingGallery autoplay={true} pauseOnHover={true} />
-
-      
       <Player audio={audioRef.current} /> {/* Neue Player-Komponente */}
-
       <SearchButtons /> {/* Neue Komponente */}
-      <LikeComponent />
-
+      {/* <LikeComponent /> */}
       <StationsList />
       <Footer />
       {/* Delete */}
@@ -45,10 +41,6 @@ function App() {
       <FormSettings />
       <hr />
       <Footer />
-     
-    
-      
-
     </>
   );
 }
