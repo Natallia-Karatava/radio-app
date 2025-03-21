@@ -75,7 +75,7 @@ const StationsList = () => {
           <div className="stations-list">
             {stationsToDisplay?.map((station) => (
               <div
-                key={station.id}
+                key={station.id || `station-${station.name}-${station.url}`}
                 className={`station-item ${
                   currentStation?.id === station.id ? "active" : ""
                 }`}
