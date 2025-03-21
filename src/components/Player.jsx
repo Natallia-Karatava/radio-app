@@ -68,6 +68,7 @@ const Player = ({ audio }) => {
     like,
     handleDislike,
     isDisliked,
+    getStationsToDisplay, // Add this
   } = useContext(FetchContext);
 
   //likeComponent
@@ -112,25 +113,41 @@ const Player = ({ audio }) => {
 
   // Navigation zwischen Sendern
   const changeStation = (direction) => {
-    if (!displayedStations.length) return;
+    // Early return if no stations
+    if (!displayedStations?.length) return;
 
-    const currentIndex = displayedStations.findIndex(
-      (station) => station.id === currentStation?.id
-    );
+    // Get current list and ensure it's not empty
+    const stationsToUse = getStationsToDisplay();
+    if (!stationsToUse?.length) return;
 
-    let newIndex;
-    if (direction === -1 && currentIndex === 0) {
-      newIndex = displayedStations.length - 1;
-    } else if (
-      direction === 1 &&
-      currentIndex === displayedStations.length - 1
-    ) {
-      newIndex = 0;
-    } else {
-      newIndex = currentIndex + direction;
+    // Find current station index
+    let currentIndex = currentStation
+      ? stationsToUse.findIndex(
+          (station) => station.stationuuid === currentStation.stationuuid
+        )
+      : -1;
+
+    // If no current station or not found, start from beginning or end based on direction
+    if (currentIndex === -1) {
+      currentIndex = direction > 0 ? -1 : stationsToUse.length;
     }
 
-    handleStationClick(displayedStations[newIndex]);
+    // Calculate new index with wrap-around
+    const totalStations = stationsToUse.length;
+    const newIndex = (currentIndex + direction + totalStations) % totalStations;
+
+    // Debug info
+    console.log({
+      previous: currentStation?.name || "none",
+      next: stationsToUse[newIndex].name,
+      direction,
+      currentIndex,
+      newIndex,
+      totalStations,
+    });
+
+    // Play the new station
+    handleStationClick(stationsToUse[newIndex]);
   };
 
   // Hilfsfunktion zum Formatieren der Tags
@@ -285,7 +302,7 @@ const Player = ({ audio }) => {
         <button
           className="previous-button"
           onClick={() => changeStation(-1)}
-          disabled={!currentStation || isLoading}
+          disabled={!displayedStations?.length} // Only disable if no stations available
         >
           <FaStepBackward size={24} />
         </button>
@@ -305,7 +322,7 @@ const Player = ({ audio }) => {
         <button
           className="next-button"
           onClick={() => changeStation(1)}
-          disabled={!currentStation || isLoading}
+          disabled={!displayedStations?.length} // Only disable if no stations available
         >
           <FaStepForward size={24} />
         </button>
