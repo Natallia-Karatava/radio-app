@@ -12,35 +12,24 @@ import PlayComponent from "./components/PlayComponent";
 
 import LikeComponent from "./components/LikeComponent";
 
-import FormRegistration from "./components/FormRegistration";
-import FormLogin from "./components/FormLogin";
-import FormPassworeForgot from "./components/FormPassworеForgot";
-import FormSettings from "./components/FormSettings";
-
 import { FetchContext } from "./contexts/FetchContext";
 import { useContext } from "react";
+import { UserProvider } from "./contexts/UserContext";
 
 function App() {
   const { audioRef } = useContext(FetchContext);
   return (
     <>
-      <Navigation />
-      <Header />
-      <RollingGallery autoplay={true} pauseOnHover={true} />
-      <Player audio={audioRef.current} /> {/* Neue Player-Komponente */}
-      <SearchButtons /> {/* Neue Komponente */}
-      {/* <LikeComponent /> */}
-      <StationsList />
-      <Footer />
-      {/* Delete */}
-      <FormLogin />
-      <hr />
-      <FormRegistration />
-      <hr />
-      <FormPassworeForgot />
-      <FormSettings />
-      <hr />
-      <Footer />
+      <UserProvider>
+        <Navigation />
+        <Header />
+        <RollingGallery autoplay={true} pauseOnHover={true} />
+        <Player audio={audioRef.current} /> {/* Neue Player-Komponente */}
+        <SearchButtons /> {/* Neue Komponente */}
+        {/* <LikeComponent /> */}
+        <StationsList />
+        <Footer />
+      </UserProvider>
     </>
   );
 }
