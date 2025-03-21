@@ -63,7 +63,6 @@ const Player = ({ audio }) => {
     isPlaying,
     handlePlayPause,
     errorMessage,
-    togglePlay,
     handleStationClick,
     displayedStations,
     like,
