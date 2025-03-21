@@ -16,7 +16,6 @@
 }
 
 .footer-center p {
-  font-size: 0.9rem;
   color: var(--black);
   text-align: center;
   margin: 0;
@@ -42,7 +41,7 @@
 }
 
 .icon-footer-wrapper p {
-  font-size: 0.7rem;
+  font-size: 1rem;
   margin: 0;
   color: var(--black);
 }
@@ -87,11 +86,11 @@
   }
 
   .footer-center p {
-    font-size: 0.8rem;
+    font-size: 1.2rem;
   }
 
   .icon-footer-wrapper svg {
-    width: 20px;
-    height: 20px;
+    width: 2rem;
+    height: 2rem;
   }
 }

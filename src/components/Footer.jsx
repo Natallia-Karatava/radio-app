@@ -9,7 +9,7 @@ const Footer = () => {
         <img src={logo} alt="SoundPulse Logo" className="footer-logo" />
       </div>
       <div className="footer-center">
-        <p>
+        <p className="text-sm">
           KaRoBo-Studio and Powered by Radio Browser API ©{" "}
           {new Date().getFullYear()}
         </p>
