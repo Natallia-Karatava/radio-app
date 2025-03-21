@@ -191,7 +191,7 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
   }, [autoplay, controls]);
 
   return (
-    <div className="gallery-container" ref={containerRef}>
+    <div className="gallery-container padding-section" ref={containerRef}>
       <div className="gallery-gradient gallery-gradient-left" />
       <div className="gallery-gradient gallery-gradient-right" />
       <div className="gallery-content">
