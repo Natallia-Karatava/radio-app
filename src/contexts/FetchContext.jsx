@@ -196,66 +196,74 @@ export const FetchProvider = ({ children }) => {
   }, [currentPage, stations, updateDisplayedStations]);
 
   // Audio control handlers
+  const [isChangingStation, setIsChangingStation] = useState(false); // Add this state
+
   const handleStationClick = async (station) => {
-    // First pause current playback if any
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
-
-    setIsPlaying(false);
-    setErrorMessage(t("Loading..."));
-    setIsLoading(true);
-
-    const streamUrl = station.urlResolved || station.url;
-    if (!streamUrl) {
-      setIsLoading(false);
-      setErrorMessage(t("No valid stream URL found"));
-      return;
-    }
-
-    const tryPlay = async (url) => {
-      try {
-        audioRef.current = new Audio(url);
-        let playbackStarted = false;
-
-        audioRef.current.addEventListener("playing", () => {
-          playbackStarted = true;
-          setIsPlaying(true);
-          setIsLoading(false);
-          setCurrentStation(station);
-          setErrorMessage("");
-          localStorage.setItem("lastPlayedStation", JSON.stringify(station));
-          console.log("Saved last played station:", station);
-        });
-
-        audioRef.current.addEventListener("error", () => {
-          if (!playbackStarted) {
-            setIsPlaying(false);
-            setIsLoading(false);
-            setErrorMessage(
-              t("Cannot play this station. Please try another one.")
-            );
-            setCurrentStation(null);
-          }
-        });
-
-        await audioRef.current.play();
-      } catch (error) {
-        if (url.startsWith("https://")) {
-          await tryPlay(url.replace("https://", "http://"));
-        } else {
-          throw error;
-        }
-      }
-    };
+    if (isChangingStation) return; // Prevent multiple clicks during station change
 
     try {
+      setIsChangingStation(true);
+      setErrorMessage(t("Loading..."));
+      setIsLoading(true);
+
+      // Stop and cleanup current audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        // Remove all existing event listeners
+        audioRef.current.removeEventListener("playing", null);
+        audioRef.current.removeEventListener("error", null);
+      }
+
+      setIsPlaying(false);
+
+      const streamUrl = station.urlResolved || station.url;
+      if (!streamUrl) {
+        setIsLoading(false);
+        setErrorMessage(t("No valid stream URL found"));
+        return;
+      }
+
+      const tryPlay = async (url) => {
+        try {
+          const audio = new Audio(url);
+          let playbackStarted = false;
+
+          const onPlaying = () => {
+            playbackStarted = true;
+            setIsPlaying(true);
+            setIsLoading(false);
+            setCurrentStation(station);
+            setErrorMessage("");
+            localStorage.setItem("lastPlayedStation", JSON.stringify(station));
+            console.log("Saved last played station:", station);
+          };
+
+          const onError = () => {
+            if (!playbackStarted) {
+              setIsPlaying(false);
+              setIsLoading(false);
+              setErrorMessage(
+                t("Cannot play this station. Please try another one.")
+              );
+              setCurrentStation(null);
+            }
+          };
+
+          audio.addEventListener("playing", onPlaying);
+          audio.addEventListener("error", onError);
+
+          audioRef.current = audio;
+          await audio.play();
+        } catch (error) {
+          if (url.startsWith("https://")) {
+            await tryPlay(url.replace("https://", "http://"));
+          } else {
+            throw error;
+          }
+        }
+      };
+
       await tryPlay(streamUrl);
     } catch (error) {
       console.error("Station playback failed:", error);
@@ -263,25 +271,10 @@ export const FetchProvider = ({ children }) => {
       setIsLoading(false);
       setCurrentStation(null);
       setErrorMessage(t("Cannot play this station. Please try another one."));
+    } finally {
+      setIsChangingStation(false);
     }
   };
-
-  const togglePlay = useCallback(() => {
-    if (!currentStation) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((error) => {
-          console.error("Playback error:", error);
-          setIsPlaying(false);
-          setErrorMessage(t("Playback error. Please try again."));
-        });
-    }
-  }, [currentStation, isPlaying, t]);
 
   const handlePlayPause = useCallback(() => {
     if (!audioRef.current || !currentStation) return;
@@ -376,7 +369,14 @@ export const FetchProvider = ({ children }) => {
       const station = JSON.parse(lastPlayedStation);
       console.log("Loaded last played station:", station);
       setCurrentStation(station);
-      // Don't autoplay, just set the station info
+
+      // Initialize audio source without autoplay
+      const streamUrl = station.urlResolved || station.url;
+      if (streamUrl && audioRef.current) {
+        audioRef.current.src = streamUrl;
+        // Pre-load the audio
+        audioRef.current.load();
+      }
     } else {
       console.log("No last played station found");
     }
@@ -497,7 +497,6 @@ export const FetchProvider = ({ children }) => {
     setShowFavorites,
 
     // Actions
-    togglePlay,
     setIsPlaying,
     setCurrentStation,
     setStationGenre,

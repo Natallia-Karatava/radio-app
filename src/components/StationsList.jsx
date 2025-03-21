@@ -64,7 +64,7 @@ const StationsList = () => {
           : displayMode === "favorites"
           ? t("My Favorites")
           : displayMode === "topvote"
-          ? t("Popular Channels")
+          ? t("Top-5 Channels")
           : t("Radio Stations")}
       </h2>
 
