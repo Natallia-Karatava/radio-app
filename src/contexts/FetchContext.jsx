@@ -5,13 +5,28 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import { RadioBrowserApi } from "radio-browser-api";
 import { useTranslation } from "react-i18next";
+import { debounce } from "lodash";
 import "../styles/StationsList.css";
+import ReactDOM from "react-dom";
 
-export const FetchContext = createContext();
+// Create and export the context
+export const FetchContext = createContext(null);
 
+// Export the hook
+export const useFetch = () => {
+  const { t } = useTranslation();
+  const context = useContext(FetchContext);
+  if (!context) {
+    throw new Error(t("useFetch must be used within a FetchProvider"));
+  }
+  return context;
+};
+
+// Export the provider component
 export const FetchProvider = ({ children }) => {
   const { t } = useTranslation();
   const audioRef = useRef(new Audio());
@@ -33,6 +48,32 @@ export const FetchProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Move debouncedSetError here, right after state declarations
+  const debouncedSetError = useCallback(
+    debounce((message) => setErrorMessage(message), 300),
+    []
+  );
+
+  const saveToStorage = useCallback((key, value) => {
+    // Debounce storage operations
+    const debouncedSave = debounce((k, v) => {
+      try {
+        const serialized = JSON.stringify(v);
+        if (window.requestIdleCallback) {
+          requestIdleCallback(() => {
+            localStorage.setItem(k, serialized);
+          });
+        } else {
+          localStorage.setItem(k, serialized);
+        }
+      } catch (err) {
+        console.error("Storage error:", err);
+      }
+    }, 300);
+
+    debouncedSave(key, value);
+  }, []);
 
   // Pagination state
   const [displayedStations, setDisplayedStations] = useState([]);
@@ -62,11 +103,11 @@ export const FetchProvider = ({ children }) => {
         ? prevFavorites.filter((fav) => fav.id !== currentStation.id)
         : [...prevFavorites, currentStation];
 
-      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
+      saveToStorage("favouriteStations", newFavorites);
       console.log("Updated favorites:", newFavorites);
       return newFavorites;
     });
-  }, [currentStation]);
+  }, [currentStation, saveToStorage]);
   useEffect(() => {
     const savedFavorites = localStorage.getItem("favouriteStations");
     if (savedFavorites) {
@@ -77,13 +118,18 @@ export const FetchProvider = ({ children }) => {
     console.log("Current favorites:", favorites);
   }, [favorites]);
 
-  const deleteFavorite = useCallback((stationId) => {
-    setFavorites((prevFavorites) => {
-      const newFavorites = prevFavorites.filter((fav) => fav.id !== stationId);
-      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
-      return newFavorites;
-    });
-  }, []);
+  const deleteFavorite = useCallback(
+    (stationId) => {
+      setFavorites((prevFavorites) => {
+        const newFavorites = prevFavorites.filter(
+          (fav) => fav.id !== stationId
+        );
+        saveToStorage("favouriteStations", newFavorites);
+        return newFavorites;
+      });
+    },
+    [saveToStorage]
+  );
 
   // Add new state for disliked stations
   const [dislikedStations, setDislikedStations] = useState(() => {
@@ -92,20 +138,23 @@ export const FetchProvider = ({ children }) => {
   });
 
   // Add dislike handler
-  const handleDislike = useCallback((station) => {
-    if (!station) return;
+  const handleDislike = useCallback(
+    (station) => {
+      if (!station) return;
 
-    setDislikedStations((prev) => {
-      const isDisliked = prev.some((s) => s.id === station.id);
-      const newDislikes = isDisliked
-        ? prev.filter((s) => s.id !== station.id)
-        : [...prev, station];
+      setDislikedStations((prev) => {
+        const isDisliked = prev.some((s) => s.id === station.id);
+        const newDislikes = isDisliked
+          ? prev.filter((s) => s.id !== station.id)
+          : [...prev, station];
 
-      localStorage.setItem("dislikedStations", JSON.stringify(newDislikes));
-      console.log("Updated disliked stations:", newDislikes);
-      return newDislikes;
-    });
-  }, []);
+        saveToStorage("dislikedStations", newDislikes);
+        console.log("Updated disliked stations:", newDislikes);
+        return newDislikes;
+      });
+    },
+    [saveToStorage]
+  );
 
   // Add isDisliked check
   const isDisliked = useCallback(
@@ -115,21 +164,115 @@ export const FetchProvider = ({ children }) => {
     [dislikedStations]
   );
 
+  const API_CONFIG = {
+    headers: {
+      "User-Agent": "SoundPulse Radio/1.0",
+      "Content-Type": "application/json",
+    },
+  };
+
+  const API_BASE_URL = "https://de1.api.radio-browser.info";
+
+  // Modify the api initialization
+  const api = useMemo(() => {
+    const controllers = new Map();
+
+    const createNewController = (requestId) => {
+      // Cleanup existing controller for this request
+      if (controllers.has(requestId)) {
+        const { controller, timeoutId } = controllers.get(requestId);
+        clearTimeout(timeoutId);
+        controller.abort();
+        controllers.delete(requestId);
+      }
+
+      // Create new controller with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        controllers.delete(requestId);
+      }, 30000);
+
+      controllers.set(requestId, { controller, timeoutId });
+      return controller.signal;
+    };
+
+    const fetchWithRetry = async (url, options, retries = 3) => {
+      const requestId = Math.random().toString(36).substring(7);
+
+      for (let i = 0; i < retries; i++) {
+        try {
+          options.signal = createNewController(requestId);
+          const response = await fetch(url, options);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          // Cleanup on success
+          if (controllers.has(requestId)) {
+            const { timeoutId } = controllers.get(requestId);
+            clearTimeout(timeoutId);
+            controllers.delete(requestId);
+          }
+
+          return await response.json();
+        } catch (error) {
+          const isLastAttempt = i === retries - 1;
+          const isAborted = error.name === "AbortError";
+
+          if (isLastAttempt) throw error;
+          if (isAborted) {
+            console.log(`Attempt ${i + 1} timed out, retrying...`);
+            // Wait before retry with exponential backoff
+            await new Promise((resolve) =>
+              setTimeout(resolve, Math.pow(2, i) * 1000)
+            );
+            continue;
+          }
+          throw error;
+        }
+      }
+    };
+
+    return {
+      searchStations: async (params) => {
+        try {
+          const url = `${API_BASE_URL}/json/stations/search?${new URLSearchParams(
+            params
+          )}`;
+          return await fetchWithRetry(url, { ...API_CONFIG }, 3);
+        } catch (error) {
+          console.error("API Error:", error);
+          if (error.name === "AbortError") {
+            throw new Error(t("Request timed out. Please try again."));
+          }
+          throw error;
+        }
+      },
+      cleanup: () => {
+        // Cleanup all pending requests
+        controllers.forEach(({ controller, timeoutId }) => {
+          clearTimeout(timeoutId);
+          controller.abort();
+        });
+        controllers.clear();
+      },
+    };
+  }, [t]);
+
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      api.cleanup();
+    };
+  }, [api]);
+
   // API setup and station fetching
   const setupApi = useCallback(
     async (genre) => {
       try {
         setIsLoading(true);
-        const api = new RadioBrowserApi(
-          "https://de1.api.radio-browser.info",
-          fetch.bind(window),
-          {
-            headers: {
-              "User-Agent": "SoundPulse Radio/1.0",
-              "Content-Type": "application/json",
-            },
-          }
-        );
 
         const searchParams = {
           limit,
@@ -159,7 +302,7 @@ export const FetchProvider = ({ children }) => {
         return uniqueStations;
       } catch (error) {
         console.error("Failed to fetch stations:", error);
-        setErrorMessage(t("Failed to fetch stations"));
+        debouncedSetError(t("Failed to fetch stations"));
         return [];
       } finally {
         setIsLoading(false);
@@ -172,16 +315,19 @@ export const FetchProvider = ({ children }) => {
   const updateDisplayedStations = useCallback(
     (stationsArray, page) => {
       try {
-        const start = page * itemsPerPage;
-        const end = start + itemsPerPage;
-        const paginatedStations = stationsArray.slice(start, end);
+        // Batch state updates
+        ReactDOM.unstable_batchedUpdates(() => {
+          const start = page * itemsPerPage;
+          const end = start + itemsPerPage;
+          const paginatedStations = stationsArray.slice(start, end);
 
-        setDisplayedStations(paginatedStations);
-        setHasMore(stationsArray.length > end);
-        setCurrentPage(page);
+          setDisplayedStations(paginatedStations);
+          setHasMore(stationsArray.length > end);
+          setCurrentPage(page);
+        });
       } catch (error) {
         console.error("Pagination error:", error);
-        setErrorMessage(t("Error updating station list"));
+        debouncedSetError(t("Error updating station list"));
       }
     },
     [itemsPerPage]
@@ -198,12 +344,42 @@ export const FetchProvider = ({ children }) => {
   // Audio control handlers
   const [isChangingStation, setIsChangingStation] = useState(false); // Add this state
 
+  const createAudioHandlers = useCallback((onSuccess, onError) => {
+    return {
+      handlePlaying: () => {
+        setIsPlaying(true);
+        setIsLoading(false);
+        onSuccess?.();
+      },
+      handleError: () => {
+        setIsPlaying(false);
+        setIsLoading(false);
+        onError?.();
+      },
+    };
+  }, []);
+
+  const setupAudioEvents = useCallback((audio, handlers) => {
+    if (!audio) return;
+
+    // Use passive event listeners where possible
+    const options = { passive: true };
+
+    audio.addEventListener("playing", handlers.handlePlaying, options);
+    audio.addEventListener("error", handlers.handleError, options);
+
+    return () => {
+      audio.removeEventListener("playing", handlers.handlePlaying);
+      audio.removeEventListener("error", handlers.handleError);
+    };
+  }, []);
+
   const handleStationClick = async (station) => {
     if (isChangingStation) return; // Prevent multiple clicks during station change
 
     try {
       setIsChangingStation(true);
-      setErrorMessage(t("Loading..."));
+      debouncedSetError(t("Loading..."));
       setIsLoading(true);
 
       // Stop and cleanup current audio
@@ -220,7 +396,7 @@ export const FetchProvider = ({ children }) => {
       const streamUrl = station.urlResolved || station.url;
       if (!streamUrl) {
         setIsLoading(false);
-        setErrorMessage(t("No valid stream URL found"));
+        debouncedSetError(t("No valid stream URL found"));
         return;
       }
 
@@ -234,8 +410,8 @@ export const FetchProvider = ({ children }) => {
             setIsPlaying(true);
             setIsLoading(false);
             setCurrentStation(station);
-            setErrorMessage("");
-            localStorage.setItem("lastPlayedStation", JSON.stringify(station));
+            debouncedSetError("");
+            saveToStorage("lastPlayedStation", station);
             console.log("Saved last played station:", station);
           };
 
@@ -243,7 +419,7 @@ export const FetchProvider = ({ children }) => {
             if (!playbackStarted) {
               setIsPlaying(false);
               setIsLoading(false);
-              setErrorMessage(
+              debouncedSetError(
                 t("Cannot play this station. Please try another one.")
               );
               setCurrentStation(null);
@@ -270,7 +446,7 @@ export const FetchProvider = ({ children }) => {
       setIsPlaying(false);
       setIsLoading(false);
       setCurrentStation(null);
-      setErrorMessage(t("Cannot play this station. Please try another one."));
+      debouncedSetError(t("Cannot play this station. Please try another one."));
     } finally {
       setIsChangingStation(false);
     }
@@ -288,18 +464,18 @@ export const FetchProvider = ({ children }) => {
           .play()
           .then(() => {
             setIsPlaying(true);
-            setErrorMessage("");
+            debouncedSetError("");
           })
           .catch((error) => {
             console.error("Playback error:", error);
             setIsPlaying(false);
-            setErrorMessage(t("Cannot resume playback. Please try again."));
+            debouncedSetError(t("Cannot resume playback. Please try again."));
           });
       }
     } catch (error) {
       console.error("PlayPause error:", error);
       setIsPlaying(false);
-      setErrorMessage(t("Playback control failed"));
+      debouncedSetError(t("Playback control failed"));
     }
   }, [currentStation, isPlaying, t]);
 
@@ -332,7 +508,7 @@ export const FetchProvider = ({ children }) => {
       } catch (error) {
         if (mounted) {
           setStations([]);
-          setErrorMessage(t("Failed to load stations"));
+          debouncedSetError(t("Failed to load stations"));
         }
       }
     };
@@ -359,28 +535,41 @@ export const FetchProvider = ({ children }) => {
 
   // Add effect to reset error message on mount
   useEffect(() => {
-    setErrorMessage("");
+    debouncedSetError("");
   }, []);
 
-  // Add this effect after other useEffect declarations
+  // Modify the last played station effect
   useEffect(() => {
     const lastPlayedStation = localStorage.getItem("lastPlayedStation");
     if (lastPlayedStation) {
       const station = JSON.parse(lastPlayedStation);
       console.log("Loaded last played station:", station);
-      setCurrentStation(station);
 
-      // Initialize audio source without autoplay
-      const streamUrl = station.urlResolved || station.url;
-      if (streamUrl && audioRef.current) {
-        audioRef.current.src = streamUrl;
-        // Pre-load the audio
-        audioRef.current.load();
+      // Check if the station is in the disliked list
+      const isStationDisliked = dislikedStations.some(
+        (disliked) => disliked.id === station.id
+      );
+
+      if (isStationDisliked) {
+        debouncedSetError(
+          t("You don't like this station. Please choose another one.")
+        );
+        setCurrentStation(null);
+        // Clear the last played station from storage
+        localStorage.removeItem("lastPlayedStation");
+      } else {
+        setCurrentStation(station);
+        // Initialize audio source without autoplay
+        const streamUrl = station.urlResolved || station.url;
+        if (streamUrl && audioRef.current) {
+          audioRef.current.src = streamUrl;
+          audioRef.current.load();
+        }
       }
     } else {
       console.log("No last played station found");
     }
-  }, []);
+  }, [dislikedStations, debouncedSetError, t]); // Add dependencies
 
   // Add effect to log disliked stations changes
   useEffect(() => {
@@ -430,7 +619,7 @@ export const FetchProvider = ({ children }) => {
   const getRandomStation = useCallback(async () => {
     try {
       if (!stations || stations.length === 0) {
-        setErrorMessage(t("No stations available"));
+        debouncedSetError(t("No stations available"));
         return;
       }
 
@@ -445,7 +634,7 @@ export const FetchProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error playing random station:", error);
-      setErrorMessage(t("Failed to play random station"));
+      debouncedSetError(t("Failed to play random station"));
     } finally {
       setIsLoading(false);
     }
@@ -468,11 +657,75 @@ export const FetchProvider = ({ children }) => {
       setCurrentPage(0);
     } catch (error) {
       console.error("Error fetching top stations:", error);
-      setErrorMessage(t("Failed to fetch top stations"));
+      debouncedSetError(t("Failed to fetch top stations"));
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Replace direct localStorage calls with saveToStorage:
+  useEffect(() => {
+    if (currentStation) saveToStorage("lastPlayedStation", currentStation);
+    saveToStorage("favouriteStations", favorites);
+    saveToStorage("dislikedStations", dislikedStations);
+  }, [favorites, dislikedStations, currentStation, saveToStorage]);
+
+  const cleanupAudio = useCallback((audio) => {
+    if (!audio) return;
+    audio.pause();
+    audio.src = "";
+    const events = ["playing", "error", "loadstart", "loadeddata"];
+    events.forEach((event) => {
+      audio.removeEventListener(event, audio[`_${event}Handler`]);
+    });
+  }, []);
+
+  // Use in component cleanup
+  useEffect(() => {
+    return () => cleanupAudio(audioRef.current);
+  }, [cleanupAudio]);
+
+  const filteredAndUniqueStations = useMemo(() => {
+    const seenNames = new Set();
+    const dislikedIds = new Set(dislikedStations.map((s) => s.id));
+
+    return stations.filter((station) => {
+      if (!station.url || !station.name || dislikedIds.has(station.id))
+        return false;
+      const duplicate = seenNames.has(station.name);
+      seenNames.add(station.name);
+      return !duplicate;
+    });
+  }, [stations, dislikedStations]);
+
+  const observerRef = useRef();
+
+  const lastStationElementRef = useCallback(
+    (node) => {
+      if (isLoading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          nextPage();
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [isLoading, hasMore, nextPage]
+  );
+
+  useEffect(() => {
+    const errorHandler = (error) => {
+      console.error("Caught runtime error:", error);
+      debouncedSetError(t("An error occurred"));
+      setIsLoading(false);
+    };
+
+    window.addEventListener("error", errorHandler);
+    return () => window.removeEventListener("error", errorHandler);
+  }, []);
 
   const value = {
     // Station data
@@ -526,17 +779,12 @@ export const FetchProvider = ({ children }) => {
     handleDislike,
     isDisliked,
     dislikedStations,
+
+    // Infinite scroll
+    lastStationElementRef,
   };
 
   return (
     <FetchContext.Provider value={value}>{children}</FetchContext.Provider>
   );
-};
-
-export const useFetch = () => {
-  const context = useContext(FetchContext);
-  if (!context) {
-    throw new Error(t("useFetch must be used within a FetchProvider"));
-  }
-  return context;
 };
