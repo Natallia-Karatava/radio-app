@@ -20,8 +20,11 @@ const StationsList = () => {
     currentPage,
     setItemsPerPage,
     stationGenre,
+
     handleStationClick,
     deleteFavorite,
+
+
   } = useContext(FetchContext);
 
   useEffect(() => {

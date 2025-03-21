@@ -27,9 +27,16 @@ function App() {
       <Navigation />
       <Header />
       <RollingGallery autoplay={true} pauseOnHover={true} />
-      <Player audio={audioRef.current} /> {/* Neue Player-Komponente */}
+
+
+      
+      
+
       <SearchButtons /> {/* Neue Komponente */}
-      {/* <LikeComponent /> */}
+      <Player audio={audioRef.current} /> {/* Neue Player-Komponente */}
+      
+
+
       <StationsList />
       <Footer />
       {/* Delete */}
