@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaMoon, FaUserCircle, FaGlobe } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import i18next from "i18next";
-import { languageResources } from "../contexts/TranslateContext";
-import FormLogin from "./FormLogin"; // импортируем форму
+import FormLogin from "./FormLogin";
+import { useUser } from "../contexts/UserContext";
 import "../styles/Navigation.css";
 
 const Navigation = () => {
@@ -13,6 +12,8 @@ const Navigation = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const languageRef = useRef(null);
   const accountRef = useRef(null);
+
+  const { isAuthenticated, logoutUser } = useUser();
 
   const languages = [
     { code: "de", flag: "🇩🇪", name: t("German") },
@@ -40,6 +41,11 @@ const Navigation = () => {
 
   const handleLoginClick = () => {
     setShowLoginForm(true);
+    setShowAccountMenu(false);
+  };
+
+  const handleLogoutClick = () => {
+    logoutUser();
     setShowAccountMenu(false);
   };
 
@@ -101,14 +107,20 @@ const Navigation = () => {
             <FaUserCircle />
             {showAccountMenu && (
               <ul className="account-dropdown">
-                <li onClick={handleLoginClick}>{t("Log In")}</li>
+                {isAuthenticated ? (
+                  <li onClick={handleLogoutClick}>{t("Log Out")}</li>
+                ) : (
+                  <li onClick={handleLoginClick}>{t("Log In")}</li>
+                )}
               </ul>
             )}
           </div>
         </div>
       </nav>
 
-      {showLoginForm && <FormLogin onClose={() => setShowLoginForm(false)} />}
+      {showLoginForm && !isAuthenticated && (
+        <FormLogin onClose={() => setShowLoginForm(false)} />
+      )}
     </>
   );
 };

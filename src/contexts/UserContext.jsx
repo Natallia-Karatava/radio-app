@@ -7,57 +7,61 @@ export const useUser = () => {
 };
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    // Load user data from localStorage
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // To store the authorization status
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      // Save user data to localStorage
-      localStorage.setItem("user", JSON.stringify(user));
-      setIsAuthenticated(true); // If there is a user, it means he is authorized
-    } else {
-      setIsAuthenticated(false); // If there is no user, not authorized
+    const activeUser = JSON.parse(localStorage.getItem("activeUser"));
+    if (activeUser) {
+      setUser(activeUser);
+      setIsAuthenticated(true);
     }
-  }, [user]);
-  // Function for user registration
-  const registerUser = (name, email, password) => {
-    const newUser = { name, email, password };
+  }, []);
+
+  const registerUser = ({ username, email, password }) => {
+    const newUser = { username, email, password };
+
+    localStorage.setItem("registeredUser", JSON.stringify(newUser));
+
     setUser(newUser);
+    localStorage.setItem("activeUser", JSON.stringify(newUser));
+    setIsAuthenticated(true);
   };
 
-  // Function for user login
-  const loginUser = (email, password) => {
-    // Check email and password if there is a match
-    const savedEmail = localStorage.getItem("userEmail");
-    const savedPassword = localStorage.getItem("userPassword");
+  const loginUser = async (username, password) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    if (savedEmail === email && savedPassword === password) {
-      const userData = {
-        name: localStorage.getItem("userName"),
-        email: savedEmail,
-        password: savedPassword,
-      };
-      setUser(userData);
+    const savedUser = JSON.parse(localStorage.getItem("registeredUser"));
+
+    if (
+      savedUser &&
+      savedUser.username === username &&
+      savedUser.password === password
+    ) {
+      setUser(savedUser);
+      localStorage.setItem("activeUser", JSON.stringify(savedUser));
+      setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);
     }
   };
 
-  // Function for user exit
   const logoutUser = () => {
-    setUser(null); // Remove the user from the state
-    localStorage.removeItem("user");
-    setIsAuthenticated(false); // Reset authorization status
+    setUser(null);
+    setIsAuthenticated(false);
+
+    localStorage.removeItem("activeUser");
   };
 
   return (
     <UserContext.Provider
-      value={{ user, isAuthenticated, registerUser, loginUser, logoutUser }}
+      value={{
+        user,
+        isAuthenticated,
+        registerUser,
+        loginUser,
+        logoutUser,
+      }}
     >
       {children}
     </UserContext.Provider>
