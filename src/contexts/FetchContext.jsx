@@ -5,28 +5,13 @@ import {
   useEffect,
   useCallback,
   useRef,
-  useMemo,
 } from "react";
 import { RadioBrowserApi } from "radio-browser-api";
 import { useTranslation } from "react-i18next";
-import { debounce } from "lodash";
 import "../styles/StationsList.css";
-import ReactDOM from "react-dom";
 
-// Create and export the context
-export const FetchContext = createContext(null);
+export const FetchContext = createContext();
 
-// Export the hook
-export const UseFetch = () => {
-  const { t } = useTranslation();
-  const context = useContext(FetchContext);
-  if (!context) {
-    throw new Error(t("UseFetch must be used within a FetchProvider"));
-  }
-  return context;
-};
-
-// Export the provider component
 export const FetchProvider = ({ children }) => {
   const { t } = useTranslation();
   const audioRef = useRef(new Audio());
@@ -43,38 +28,11 @@ export const FetchProvider = ({ children }) => {
   const [currentStation, setCurrentStation] = useState(null);
   const [stationGenre, setStationGenre] = useState(null);
   const [filteredStations, setFilteredStations] = useState([]);
-  const [searchedStations, setSearchedStations] = useState([]); // Add new state for searched stations
 
   // UI state
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  // Move debouncedSetError here, right after state declarations
-  const debouncedSetError = useCallback(
-    debounce((message) => setErrorMessage(message), 300),
-    []
-  );
-
-  const saveToStorage = useCallback((key, value) => {
-    // Debounce storage operations
-    const debouncedSave = debounce((k, v) => {
-      try {
-        const serialized = JSON.stringify(v);
-        if (window.requestIdleCallback) {
-          requestIdleCallback(() => {
-            localStorage.setItem(k, serialized);
-          });
-        } else {
-          localStorage.setItem(k, serialized);
-        }
-      } catch (err) {
-        console.error("Storage error:", err);
-      }
-    }, 300);
-
-    debouncedSave(key, value);
-  }, []);
 
   // Pagination state
   const [displayedStations, setDisplayedStations] = useState([]);
@@ -104,11 +62,11 @@ export const FetchProvider = ({ children }) => {
         ? prevFavorites.filter((fav) => fav.id !== currentStation.id)
         : [...prevFavorites, currentStation];
 
-      saveToStorage("favouriteStations", newFavorites);
+      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
       console.log("Updated favorites:", newFavorites);
       return newFavorites;
     });
-  }, [currentStation, saveToStorage]);
+  }, [currentStation]);
   useEffect(() => {
     const savedFavorites = localStorage.getItem("favouriteStations");
     if (savedFavorites) {
@@ -119,18 +77,13 @@ export const FetchProvider = ({ children }) => {
     console.log("Current favorites:", favorites);
   }, [favorites]);
 
-  const deleteFavorite = useCallback(
-    (stationId) => {
-      setFavorites((prevFavorites) => {
-        const newFavorites = prevFavorites.filter(
-          (fav) => fav.id !== stationId
-        );
-        saveToStorage("favouriteStations", newFavorites);
-        return newFavorites;
-      });
-    },
-    [saveToStorage]
-  );
+  const deleteFavorite = useCallback((stationId) => {
+    setFavorites((prevFavorites) => {
+      const newFavorites = prevFavorites.filter((fav) => fav.id !== stationId);
+      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
+      return newFavorites;
+    });
+  }, []);
 
   // Add new state for disliked stations
   const [dislikedStations, setDislikedStations] = useState(() => {
@@ -139,23 +92,20 @@ export const FetchProvider = ({ children }) => {
   });
 
   // Add dislike handler
-  const handleDislike = useCallback(
-    (station) => {
-      if (!station) return;
+  const handleDislike = useCallback((station) => {
+    if (!station) return;
 
-      setDislikedStations((prev) => {
-        const isDisliked = prev.some((s) => s.id === station.id);
-        const newDislikes = isDisliked
-          ? prev.filter((s) => s.id !== station.id)
-          : [...prev, station];
+    setDislikedStations((prev) => {
+      const isDisliked = prev.some((s) => s.id === station.id);
+      const newDislikes = isDisliked
+        ? prev.filter((s) => s.id !== station.id)
+        : [...prev, station];
 
-        saveToStorage("dislikedStations", newDislikes);
-        console.log("Updated disliked stations:", newDislikes);
-        return newDislikes;
-      });
-    },
-    [saveToStorage]
-  );
+      localStorage.setItem("dislikedStations", JSON.stringify(newDislikes));
+      console.log("Updated disliked stations:", newDislikes);
+      return newDislikes;
+    });
+  }, []);
 
   // Add isDisliked check
   const isDisliked = useCallback(
@@ -165,111 +115,24 @@ export const FetchProvider = ({ children }) => {
     [dislikedStations]
   );
 
-  const API_CONFIG = {
-    headers: {
-      "User-Agent": "SoundPulse Radio/1.0",
-      "Content-Type": "application/json",
-    },
-  };
-
-  const API_BASE_URL = "https://de1.api.radio-browser.info";
-
-  // Update the api initialization with better abort handling
-  const api = useMemo(() => {
-    const controllers = new Map();
-
-    const searchStations = async (params = {}) => {
-      const requestId = Math.random().toString(36).substring(7);
-
-      // Cleanup any existing request
-      if (controllers.has(requestId)) {
-        controllers.get(requestId).abort();
-        controllers.delete(requestId);
-      }
-
-      try {
-        const queryParams = new URLSearchParams();
-
-        // Add search parameters
-        params.name && queryParams.append("name", params.name);
-        params.country && queryParams.append("country", params.country);
-        params.language && queryParams.append("language", params.language);
-        params.codec && queryParams.append("codec", params.codec);
-        params.minBitrate &&
-          queryParams.append("bitrateMin", params.minBitrate);
-        queryParams.append("limit", "100");
-
-        // Use bytag endpoint for genre searches
-        let url;
-        if (params.tag && params.tag !== "all") {
-          url = `${API_BASE_URL}/json/stations/bytag/${encodeURIComponent(
-            params.tag
-          )}`;
-        } else {
-          url = `${API_BASE_URL}/json/stations/search?${queryParams}`;
-        }
-
-        const controller = new AbortController();
-        controllers.set(requestId, controller);
-
-        const response = await fetch(url, {
-          headers: {
-            "User-Agent": "RadioBrowserApp/1.0",
-            "Content-Type": "application/json",
-          },
-          mode: "cors",
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        controllers.delete(requestId); // Clean up successful request
-        return data;
-      } catch (error) {
-        if (error.name === "AbortError") {
-          console.log("Request was aborted");
-          return [];
-        }
-        throw error;
-      } finally {
-        controllers.delete(requestId);
-      }
-    };
-
-    return {
-      searchStations,
-      cleanup: () => {
-        // Only abort active requests
-        controllers.forEach((controller) => {
-          try {
-            controller.abort();
-          } catch (e) {
-            console.warn("Abort error:", e);
-          }
-        });
-        controllers.clear();
-      },
-    };
-  }, [API_BASE_URL]);
-
-  // Add cleanup effect
-  useEffect(() => {
-    return () => {
-      api.cleanup();
-    };
-  }, [api]);
-
   // API setup and station fetching
   const setupApi = useCallback(
     async (genre) => {
       try {
         setIsLoading(true);
+        const api = new RadioBrowserApi(
+          "https://de1.api.radio-browser.info",
+          fetch.bind(window),
+          {
+            headers: {
+              "User-Agent": "SoundPulse Radio/1.0",
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         const searchParams = {
-          limit: 200,
+          limit,
           ...(lang && { language: lang }),
           ...(country && { country }),
           ...(stationGenre && stationGenre !== "all" && { tag: stationGenre }),
@@ -296,7 +159,7 @@ export const FetchProvider = ({ children }) => {
         return uniqueStations;
       } catch (error) {
         console.error("Failed to fetch stations:", error);
-        debouncedSetError(t("Failed to fetch stations"));
+        setErrorMessage(t("Failed to fetch stations"));
         return [];
       } finally {
         setIsLoading(false);
@@ -309,19 +172,16 @@ export const FetchProvider = ({ children }) => {
   const updateDisplayedStations = useCallback(
     (stationsArray, page) => {
       try {
-        // Batch state updates
-        ReactDOM.unstable_batchedUpdates(() => {
-          const start = page * itemsPerPage;
-          const end = start + itemsPerPage;
-          const paginatedStations = stationsArray.slice(start, end);
+        const start = page * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedStations = stationsArray.slice(start, end);
 
-          setDisplayedStations(paginatedStations);
-          setHasMore(stationsArray.length > end);
-          setCurrentPage(page);
-        });
+        setDisplayedStations(paginatedStations);
+        setHasMore(stationsArray.length > end);
+        setCurrentPage(page);
       } catch (error) {
         console.error("Pagination error:", error);
-        debouncedSetError(t("Error updating station list"));
+        setErrorMessage(t("Error updating station list"));
       }
     },
     [itemsPerPage]
@@ -338,75 +198,63 @@ export const FetchProvider = ({ children }) => {
   // Audio control handlers
   const [isChangingStation, setIsChangingStation] = useState(false); // Add this state
 
-  const createAudioHandlers = useCallback((onSuccess, onError) => {
-    return {
-      handlePlaying: () => {
-        setIsPlaying(true);
-        setIsLoading(false);
-        onSuccess?.();
-      },
-      handleError: () => {
-        setIsPlaying(false);
-        setIsLoading(false);
-        onError?.();
-      },
-    };
-  }, []);
-
-  const setupAudioEvents = useCallback((audio, handlers) => {
-    if (!audio) return;
-
-    // Use passive event listeners where possible
-    const options = { passive: true };
-
-    audio.addEventListener("playing", handlers.handlePlaying, options);
-    audio.addEventListener("error", handlers.handleError, options);
-
-    return () => {
-      audio.removeEventListener("playing", handlers.handlePlaying);
-      audio.removeEventListener("error", handlers.handleError);
-    };
-  }, []);
-
   const handleStationClick = async (station) => {
-    if (isChangingStation) return;
+    if (isChangingStation) return; // Prevent multiple clicks during station change
 
     try {
       setIsChangingStation(true);
+      setErrorMessage(t("Loading..."));
       setIsLoading(true);
-      debouncedSetError("");
 
-      // Stop current playback
+      // Stop and cleanup current audio
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
+        // Remove all existing event listeners
+        audioRef.current.removeEventListener("playing", null);
+        audioRef.current.removeEventListener("error", null);
       }
 
       setIsPlaying(false);
 
       const streamUrl = station.urlResolved || station.url;
       if (!streamUrl) {
-        throw new Error("No valid stream URL found");
+        setIsLoading(false);
+        setErrorMessage(t("No valid stream URL found"));
+        return;
       }
 
       const tryPlay = async (url) => {
         try {
           const audio = new Audio(url);
+          let playbackStarted = false;
 
-          // Set a timeout for loading attempt
-          const loadPromise = new Promise((resolve, reject) => {
-            audio.addEventListener("canplay", resolve, { once: true });
-            audio.addEventListener("error", reject, { once: true });
-            setTimeout(() => reject(new Error("Loading timeout")), 5000);
-          });
+          const onPlaying = () => {
+            playbackStarted = true;
+            setIsPlaying(true);
+            setIsLoading(false);
+            setCurrentStation(station);
+            setErrorMessage("");
+            localStorage.setItem("lastPlayedStation", JSON.stringify(station));
+            console.log("Saved last played station:", station);
+          };
 
-          await loadPromise;
+          const onError = () => {
+            if (!playbackStarted) {
+              setIsPlaying(false);
+              setIsLoading(false);
+              setErrorMessage(
+                t("Cannot play this station. Please try another one.")
+              );
+              setCurrentStation(null);
+            }
+          };
+
+          audio.addEventListener("playing", onPlaying);
+          audio.addEventListener("error", onError);
+
           audioRef.current = audio;
           await audio.play();
-
-          setCurrentStation(station);
-          saveToStorage("lastPlayedStation", station);
-          setIsPlaying(true);
         } catch (error) {
           if (url.startsWith("https://")) {
             await tryPlay(url.replace("https://", "http://"));
@@ -420,12 +268,10 @@ export const FetchProvider = ({ children }) => {
     } catch (error) {
       console.error("Station playback failed:", error);
       setIsPlaying(false);
-      setCurrentStation(null);
-      debouncedSetError(t("Cannot play this station. Try next station."));
-      // Automatically try next station on failure
-      changeStation(1);
-    } finally {
       setIsLoading(false);
+      setCurrentStation(null);
+      setErrorMessage(t("Cannot play this station. Please try another one."));
+    } finally {
       setIsChangingStation(false);
     }
   };
@@ -442,18 +288,18 @@ export const FetchProvider = ({ children }) => {
           .play()
           .then(() => {
             setIsPlaying(true);
-            debouncedSetError("");
+            setErrorMessage("");
           })
           .catch((error) => {
             console.error("Playback error:", error);
             setIsPlaying(false);
-            debouncedSetError(t("Cannot resume playback. Please try again."));
+            setErrorMessage(t("Cannot resume playback. Please try again."));
           });
       }
     } catch (error) {
       console.error("PlayPause error:", error);
       setIsPlaying(false);
-      debouncedSetError(t("Playback control failed"));
+      setErrorMessage(t("Playback control failed"));
     }
   }, [currentStation, isPlaying, t]);
 
@@ -486,7 +332,7 @@ export const FetchProvider = ({ children }) => {
       } catch (error) {
         if (mounted) {
           setStations([]);
-          debouncedSetError(t("Failed to load stations"));
+          setErrorMessage(t("Failed to load stations"));
         }
       }
     };
@@ -513,41 +359,28 @@ export const FetchProvider = ({ children }) => {
 
   // Add effect to reset error message on mount
   useEffect(() => {
-    debouncedSetError("");
+    setErrorMessage("");
   }, []);
 
-  // Modify the last played station effect
+  // Add this effect after other useEffect declarations
   useEffect(() => {
     const lastPlayedStation = localStorage.getItem("lastPlayedStation");
     if (lastPlayedStation) {
       const station = JSON.parse(lastPlayedStation);
       console.log("Loaded last played station:", station);
+      setCurrentStation(station);
 
-      // Check if the station is in the disliked list
-      const isStationDisliked = dislikedStations.some(
-        (disliked) => disliked.id === station.id
-      );
-
-      if (isStationDisliked) {
-        debouncedSetError(
-          t("You don't like this station. Please choose another one.")
-        );
-        setCurrentStation(null);
-        // Clear the last played station from storage
-        localStorage.removeItem("lastPlayedStation");
-      } else {
-        setCurrentStation(station);
-        // Initialize audio source without autoplay
-        const streamUrl = station.urlResolved || station.url;
-        if (streamUrl && audioRef.current) {
-          audioRef.current.src = streamUrl;
-          audioRef.current.load();
-        }
+      // Initialize audio source without autoplay
+      const streamUrl = station.urlResolved || station.url;
+      if (streamUrl && audioRef.current) {
+        audioRef.current.src = streamUrl;
+        // Pre-load the audio
+        audioRef.current.load();
       }
     } else {
       console.log("No last played station found");
     }
-  }, [dislikedStations, debouncedSetError, t]); // Add dependencies
+  }, []);
 
   // Add effect to log disliked stations changes
   useEffect(() => {
@@ -576,23 +409,16 @@ export const FetchProvider = ({ children }) => {
     }
   }, [dislikedStations]); // Re-run when disliked stations change
 
-  // Update getStationsToDisplay to return full arrays
   const getStationsToDisplay = useCallback(() => {
     switch (displayMode) {
       case "favorites":
         return favorites;
       case "genre":
-        // Return full stations array filtered by genre
-        return stations.filter((station) =>
-          station.tags?.includes(stationGenre)
-        );
-      case "searched":
-        return searchedStations;
+        return displayedStations;
       default:
-        // Return full stations array instead of displayedStations
-        return stations;
+        return displayedStations;
     }
-  }, [displayMode, favorites, stations, stationGenre, searchedStations]);
+  }, [displayMode, favorites, displayedStations]);
 
   const changeDisplayMode = useCallback((mode, genre = null) => {
     setDisplayMode(mode);
@@ -604,7 +430,7 @@ export const FetchProvider = ({ children }) => {
   const getRandomStation = useCallback(async () => {
     try {
       if (!stations || stations.length === 0) {
-        debouncedSetError(t("No stations available"));
+        setErrorMessage(t("No stations available"));
         return;
       }
 
@@ -619,7 +445,7 @@ export const FetchProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error playing random station:", error);
-      debouncedSetError(t("Failed to play random station"));
+      setErrorMessage(t("Failed to play random station"));
     } finally {
       setIsLoading(false);
     }
@@ -642,126 +468,11 @@ export const FetchProvider = ({ children }) => {
       setCurrentPage(0);
     } catch (error) {
       console.error("Error fetching top stations:", error);
-      debouncedSetError(t("Failed to fetch top stations"));
+      setErrorMessage(t("Failed to fetch top stations"));
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Replace direct localStorage calls with saveToStorage:
-  useEffect(() => {
-    if (currentStation) saveToStorage("lastPlayedStation", currentStation);
-    saveToStorage("favouriteStations", favorites);
-    saveToStorage("dislikedStations", dislikedStations);
-  }, [favorites, dislikedStations, currentStation, saveToStorage]);
-
-  const cleanupAudio = useCallback((audio) => {
-    if (!audio) return;
-    audio.pause();
-    audio.src = "";
-    const events = ["playing", "error", "loadstart", "loadeddata"];
-    events.forEach((event) => {
-      audio.removeEventListener(event, audio[`_${event}Handler`]);
-    });
-  }, []);
-
-  // Use in component cleanup
-  useEffect(() => {
-    return () => cleanupAudio(audioRef.current);
-  }, [cleanupAudio]);
-
-  const filteredAndUniqueStations = useMemo(() => {
-    const seenNames = new Set();
-    const dislikedIds = new Set(dislikedStations.map((s) => s.id));
-
-    return stations.filter((station) => {
-      if (!station.url || !station.name || dislikedIds.has(station.id))
-        return false;
-      const duplicate = seenNames.has(station.name);
-      seenNames.add(station.name);
-      return !duplicate;
-    });
-  }, [stations, dislikedStations]);
-
-  const observerRef = useRef();
-
-  const lastStationElementRef = useCallback(
-    (node) => {
-      if (isLoading) return;
-      if (observerRef.current) observerRef.current.disconnect();
-
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          nextPage();
-        }
-      });
-
-      if (node) observerRef.current.observe(node);
-    },
-    [isLoading, hasMore, nextPage]
-  );
-
-  useEffect(() => {
-    const errorHandler = (error) => {
-      console.error("Caught runtime error:", error);
-      debouncedSetError(t("An error occurred"));
-      setIsLoading(false);
-    };
-
-    window.addEventListener("error", errorHandler);
-    return () => window.removeEventListener("error", errorHandler);
-  }, []);
-
-  const searchStationsByName = useCallback(
-    async (searchValue) => {
-      if (!searchValue.trim()) {
-        setDisplayMode("all");
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        // Fix the API endpoint URL
-        const response = await fetch(
-          `${API_BASE_URL}/json/stations/search?name=${encodeURIComponent(
-            searchValue
-          )}&limit=100`,
-          {
-            headers: {
-              "User-Agent": "RadioBrowserApp/1.0",
-              "Content-Type": "application/json",
-            },
-            mode: "cors",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const results = await response.json();
-
-        // Filter out disliked stations
-        const filteredResults = results.filter(
-          (station) => !dislikedStations.some((ds) => ds.id === station.id)
-        );
-
-        setSearchedStations(filteredResults);
-        setDisplayMode("searched");
-        updateDisplayedStations(filteredResults, 0);
-
-        if (filteredResults.length === 0) {
-          console.log("No stations found");
-        }
-      } catch (error) {
-        console.error("Search error:", error);
-        console.log("Search failed. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [API_BASE_URL, dislikedStations, updateDisplayedStations, t]
-  );
 
   const value = {
     // Station data
@@ -815,16 +526,17 @@ export const FetchProvider = ({ children }) => {
     handleDislike,
     isDisliked,
     dislikedStations,
-
-    // Infinite scroll
-    lastStationElementRef,
-
-    // Search functionality
-    searchStationsByName,
-    searchedStations,
   };
 
   return (
     <FetchContext.Provider value={value}>{children}</FetchContext.Provider>
   );
+};
+
+export const useFetch = () => {
+  const context = useContext(FetchContext);
+  if (!context) {
+    throw new Error(t("useFetch must be used within a FetchProvider"));
+  }
+  return context;
 };

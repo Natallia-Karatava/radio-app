@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useMemo } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FetchContext } from "../contexts/FetchContext";
 import { useTranslation } from "react-i18next";
 import img from "../images/logos/SoundPulse_signet.png";
@@ -8,14 +8,6 @@ import { MdDelete } from "react-icons/md";
 const StationsList = () => {
   const { t } = useTranslation();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [localItemsPerPage, setLocalItemsPerPage] = useState(() => {
-    const width = window.innerWidth;
-    return width <= 480 ? 6 : width <= 768 ? 8 : 12;
-  });
-
-  const [currentSourceArray, setCurrentSourceArray] = useState([]);
-  const [totalItems, setTotalItems] = useState(0);
-  const [hasMoreLocal, setHasMoreLocal] = useState(false);
 
   const {
     displayMode,
@@ -28,133 +20,41 @@ const StationsList = () => {
     currentPage,
     setItemsPerPage,
     stationGenre,
-
     handleStationClick,
     deleteFavorite,
-
-    searchedStations,
-
-
-
-
   } = useContext(FetchContext);
 
-  // Move isEmpty declaration before it's used
-  const isEmpty =
-    (displayMode === "favorites" &&
-      (!stationsToDisplay || stationsToDisplay.length === 0)) ||
-    (displayMode === "searched" &&
-      (!searchedStations || searchedStations.length === 0));
-
-  // Update the stationsToDisplay useMemo with debug logging
-  const stationsToDisplay = useMemo(() => {
-    let sourceArray = [];
-    let total = 0;
-
-    // Get and validate source array
-    switch (displayMode) {
-      case "searched":
-        if (Array.isArray(searchedStations)) {
-          sourceArray = [...searchedStations];
-          total = searchedStations.length;
-        }
-        break;
-      case "genre":
-      case "all":
-        const stations = getStationsToDisplay();
-        console.log("GetStationsToDisplay Result:", {
-          rawStations: stations,
-          isArray: Array.isArray(stations),
-          length: stations?.length,
-          displayMode,
-          genre: stationGenre,
-        });
-
-        if (Array.isArray(stations)) {
-          sourceArray = stations;
-          total = stations.length;
-        }
-        break;
-      default:
-        sourceArray = [];
-        total = 0;
-    }
-
-    // Store total before pagination
-    setTotalItems(total);
-
-    // Calculate pagination
-    const start = currentPage * localItemsPerPage;
-    const end = start + localItemsPerPage;
-
-    // Fix hasMore calculation - check if there are any items after the current slice
-    const hasMoreItems = total > end;
-    setHasMoreLocal(hasMoreItems);
-
-    console.log("Final Source Array:", {
-      mode: displayMode,
-      sourceArrayLength: sourceArray.length,
-      paginatedLength: sourceArray.slice(start, end).length,
-      hasMore: hasMoreItems,
-      total,
-    });
-
-    return sourceArray.slice(start, end);
-  }, [
-    displayMode,
-    searchedStations,
-    getStationsToDisplay,
-    currentPage,
-    localItemsPerPage,
-    stationGenre,
-  ]);
-
-  // Update resize handler
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       setWindowWidth(width);
 
-      const newItemsPerPage = width <= 480 ? 6 : width <= 768 ? 8 : 12;
-
-      setLocalItemsPerPage(newItemsPerPage);
-      setItemsPerPage(newItemsPerPage); // Update context state
+      if (width <= 480) {
+        setItemsPerPage(6);
+        // console.log("Mobile view:", width, "- 6 items");
+      } else if (width <= 768) {
+        setItemsPerPage(8);
+        // console.log("Tablet view:", width, "- 8 items");
+      } else {
+        setItemsPerPage(12);
+        // console.log("Desktop view:", width, "- 12 items");
+      }
     };
 
-    handleResize(); // Initial call
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [setItemsPerPage]);
 
-  // Update showPagination calculation
-  const showPagination = useMemo(() => {
-    const totalPages = Math.ceil(totalItems / localItemsPerPage);
-    const shouldShowPagination =
-      (displayMode === "all" ||
-        displayMode === "genre" ||
-        displayMode === "searched") &&
-      totalPages > 1 && // Show pagination if there's more than one page
-      !isEmpty;
+  const stationsToDisplay = getStationsToDisplay();
+  const isEmpty =
+    displayMode === "favorites" &&
+    (!stationsToDisplay || stationsToDisplay.length === 0);
 
-    console.log("Pagination State:", {
-      mode: displayMode,
-      totalItems,
-      itemsPerPage: localItemsPerPage,
-      totalPages,
-      currentPage,
-      shouldShow: shouldShowPagination,
-      hasMore: hasMoreLocal,
-    });
-
-    return shouldShowPagination;
-  }, [
-    displayMode,
-    totalItems,
-    localItemsPerPage,
-    isEmpty,
-    hasMoreLocal,
-    currentPage,
-  ]);
+  const showPagination =
+    (displayMode === "all" || displayMode === "genre") &&
+    stationsToDisplay?.length > 0 &&
+    !isEmpty;
 
   return (
     <div className={`stations-container ${isEmpty ? "empty-favorites" : ""}`}>
@@ -165,25 +65,17 @@ const StationsList = () => {
           ? t("My Favorites")
           : displayMode === "topvote"
           ? t("Top-5 Channels")
-          : displayMode === "searched"
-          ? t("Search Results")
           : t("Radio Stations")}
       </h2>
 
       {isEmpty ? (
-        <div className="empty-message">
-          {displayMode === "favorites"
-            ? t("No favorites yet")
-            : displayMode === "searched"
-            ? t("No stations found")
-            : t("No stations available")}
-        </div>
+        <div className="empty-message">{t("No favorites yet")}</div>
       ) : (
         <>
           <div className="stations-list">
-            {stationsToDisplay?.map((station, index) => (
+            {stationsToDisplay?.map((station) => (
               <div
-                key={index}
+                key={station.id}
                 className={`station-item ${
                   currentStation?.id === station.id ? "active" : ""
                 }`}
@@ -236,7 +128,7 @@ const StationsList = () => {
                   {t("Previous")}
                 </button>
               )}
-              {hasMoreLocal && ( // Use local hasMore instead of context hasMore
+              {hasMore && (
                 <button
                   className="button button-next-prev"
                   onClick={nextPage}
