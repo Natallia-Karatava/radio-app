@@ -5,12 +5,16 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import { RadioBrowserApi } from "radio-browser-api";
 import { useTranslation } from "react-i18next";
 import "../styles/StationsList.css";
 
-export const FetchContext = createContext();
+export const FetchContext = createContext({
+  nextStation: () => {},
+  previousStation: () => {},
+});
 
 export const FetchProvider = ({ children }) => {
   const { t } = useTranslation();
@@ -474,62 +478,145 @@ export const FetchProvider = ({ children }) => {
     }
   };
 
-  const value = {
-    // Station data
-    stations,
-    currentStation,
-    stationGenre,
-    filteredStations,
-    displayedStations,
+  // Add navigation functions
+  const nextStation = useCallback(async () => {
+    if (!stations.length || !currentStation) return;
 
-    // UI state
-    isLoading,
-    isPlaying,
-    errorMessage,
-    currentPage,
-    hasMore,
-    audioRef,
+    try {
+      const currentIndex = stations.findIndex(
+        (station) => station.id === currentStation.id
+      );
+      const nextIndex = (currentIndex + 1) % stations.length;
+      await handleStationClick(stations[nextIndex]);
+    } catch (error) {
+      console.error("Next station error:", error);
+      setErrorMessage(t("Failed to play next station"));
+    }
+  }, [currentStation, stations, handleStationClick, setErrorMessage, t]);
 
-    // LikeComponent.jsx
-    favorites,
-    like,
-    showFavorites,
-    setShowFavorites,
+  const previousStation = useCallback(async () => {
+    if (!stations.length || !currentStation) return;
 
-    // Actions
-    setIsPlaying,
-    setCurrentStation,
-    setStationGenre,
-    setErrorMessage,
-    updateDisplayedStations,
-    nextPage,
-    previousPage,
-    setupApi,
-    setLimit,
-    setFilteredStations,
-    resetToDefaults,
-    setItemsPerPage,
-    handleStationClick,
-    setFavorites,
+    try {
+      const currentIndex = stations.findIndex(
+        (station) => station.id === currentStation.id
+      );
+      const prevIndex =
+        currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
+      await handleStationClick(stations[prevIndex]);
+    } catch (error) {
+      console.error("Previous station error:", error);
+      setErrorMessage(t("Failed to play previous station"));
+    }
+  }, [currentStation, stations, handleStationClick, setErrorMessage, t]);
 
-    // Display mode
-    displayMode,
-    changeDisplayMode,
-    getStationsToDisplay,
+  const contextValue = useMemo(
+    () => ({
+      // Station data
+      stations,
+      currentStation,
+      stationGenre,
+      filteredStations,
+      displayedStations,
 
-    deleteFavorite,
-    getRandomStation,
-    handlePlayPause,
-    fetchTopStations,
+      // UI state
+      isLoading,
+      isPlaying,
+      errorMessage,
+      currentPage,
+      hasMore,
+      audioRef,
 
-    // Dislike functionality
-    handleDislike,
-    isDisliked,
-    dislikedStations,
-  };
+      // LikeComponent.jsx
+      favorites,
+      like,
+      showFavorites,
+      setShowFavorites,
+
+      // Actions
+      setIsPlaying,
+      setCurrentStation,
+      setStationGenre,
+      setErrorMessage,
+      updateDisplayedStations,
+      nextPage,
+      previousPage,
+      setupApi,
+      setLimit,
+      setFilteredStations,
+      resetToDefaults,
+      setItemsPerPage,
+      handleStationClick,
+      setFavorites,
+
+      // Display mode
+      displayMode,
+      changeDisplayMode,
+      getStationsToDisplay,
+
+      deleteFavorite,
+      getRandomStation,
+      handlePlayPause,
+      fetchTopStations,
+
+      // Dislike functionality
+      handleDislike,
+      isDisliked,
+      dislikedStations,
+
+      // Navigation functions
+      nextStation,
+      previousStation,
+    }),
+    [
+      stations,
+      currentStation,
+      stationGenre,
+      filteredStations,
+      displayedStations,
+      isLoading,
+      isPlaying,
+      errorMessage,
+      currentPage,
+      hasMore,
+      audioRef,
+      favorites,
+      like,
+      showFavorites,
+      setShowFavorites,
+      setIsPlaying,
+      setCurrentStation,
+      setStationGenre,
+      setErrorMessage,
+      updateDisplayedStations,
+      nextPage,
+      previousPage,
+      setupApi,
+      setLimit,
+      setFilteredStations,
+      resetToDefaults,
+      setItemsPerPage,
+      handleStationClick,
+      setFavorites,
+      displayMode,
+      changeDisplayMode,
+      getStationsToDisplay,
+      deleteFavorite,
+      getRandomStation,
+      handlePlayPause,
+      fetchTopStations,
+      handleDislike,
+      isDisliked,
+      dislikedStations,
+      nextStation,
+      previousStation,
+    ]
+  );
 
   return (
-    <FetchContext.Provider value={value}>{children}</FetchContext.Provider>
+    <FetchContext.Provider value={contextValue}>
+      {children}
+    </FetchContext.Provider>
   );
 };
 

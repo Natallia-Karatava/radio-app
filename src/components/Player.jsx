@@ -63,12 +63,13 @@ const Player = ({ audio }) => {
     isPlaying,
     handlePlayPause,
     errorMessage,
-    handleStationClick,
+    stations, // Add this
     displayedStations,
     like,
     handleDislike,
     isDisliked,
-    getStationsToDisplay, // Add this
+    nextStation,
+    previousStation,
   } = useContext(FetchContext);
 
   //likeComponent
@@ -111,43 +112,34 @@ const Player = ({ audio }) => {
     // console.log("Share state:", !isShare);
   };
 
-  // Navigation zwischen Sendern
-  const changeStation = (direction) => {
-    // Early return if no stations
-    if (!displayedStations?.length) return;
+  // Add isChanging state
+  const [isChanging, setIsChanging] = useState(false);
 
-    // Get current list and ensure it's not empty
-    const stationsToUse = getStationsToDisplay();
-    if (!stationsToUse?.length) return;
+  // Navigation handlers
+  const handlePreviousStation = async () => {
+    if (!stations?.length || isChanging) return;
 
-    // Find current station index
-    let currentIndex = currentStation
-      ? stationsToUse.findIndex(
-          (station) => station.stationuuid === currentStation.stationuuid
-        )
-      : -1;
-
-    // If no current station or not found, start from beginning or end based on direction
-    if (currentIndex === -1) {
-      currentIndex = direction > 0 ? -1 : stationsToUse.length;
+    try {
+      setIsChanging(true);
+      await previousStation();
+    } catch (error) {
+      console.error("Error changing station:", error);
+    } finally {
+      setIsChanging(false);
     }
+  };
 
-    // Calculate new index with wrap-around
-    const totalStations = stationsToUse.length;
-    const newIndex = (currentIndex + direction + totalStations) % totalStations;
+  const handleNextStation = async () => {
+    if (!stations?.length || isChanging) return;
 
-    // Debug info
-    console.log({
-      previous: currentStation?.name || "none",
-      next: stationsToUse[newIndex].name,
-      direction,
-      currentIndex,
-      newIndex,
-      totalStations,
-    });
-
-    // Play the new station
-    handleStationClick(stationsToUse[newIndex]);
+    try {
+      setIsChanging(true);
+      await nextStation();
+    } catch (error) {
+      console.error("Error changing station:", error);
+    } finally {
+      setIsChanging(false);
+    }
   };
 
   // Hilfsfunktion zum Formatieren der Tags
@@ -301,8 +293,8 @@ const Player = ({ audio }) => {
         {/* Play Controls */}
         <button
           className="previous-button"
-          onClick={() => changeStation(-1)}
-          disabled={!displayedStations?.length} // Only disable if no stations available
+          onClick={handlePreviousStation}
+          disabled={!currentStation || isLoading}
         >
           <FaStepBackward size={24} />
         </button>
@@ -321,8 +313,8 @@ const Player = ({ audio }) => {
 
         <button
           className="next-button"
-          onClick={() => changeStation(1)}
-          disabled={!displayedStations?.length} // Only disable if no stations available
+          onClick={handleNextStation}
+          disabled={!currentStation || isLoading}
         >
           <FaStepForward size={24} />
         </button>
