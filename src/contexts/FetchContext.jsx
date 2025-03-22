@@ -53,6 +53,24 @@ export const FetchProvider = ({ children }) => {
   const [showFavorites, setShowFavorites] = useState(false);
 
   const [displayMode, setDisplayMode] = useState("all"); // 'all', 'favorites', 'genre'
+  // Pagination handlers
+  const updateDisplayedStations = useCallback(
+    (stationsArray, page) => {
+      try {
+        const start = page * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedStations = stationsArray.slice(start, end);
+
+        setDisplayedStations(paginatedStations);
+        setHasMore(stationsArray.length > end);
+        setCurrentPage(page);
+      } catch (error) {
+        console.error("Pagination error:", error);
+        setErrorMessage(t("Error updating station list"));
+      }
+    },
+    [itemsPerPage]
+  );
 
   const like = useCallback(() => {
     if (!currentStation) return;
@@ -127,47 +145,80 @@ export const FetchProvider = ({ children }) => {
   );
 
   // API setup and station fetching
+  const API_SERVERS = [
+    "https://de1.api.radio-browser.info",
+    "https://at1.api.radio-browser.info",
+    "https://nl1.api.radio-browser.info",
+    "https://fr1.api.radio-browser.info",
+    "https://de2.api.radio-browser.info",
+    "https://de3.api.radio-browser.info",
+    "https://uk1.api.radio-browser.info",
+    "https://us1.api.radio-browser.info",
+    "https://fi1.api.radio-browser.info",
+  ];
+
   const setupApi = useCallback(
     async (genre) => {
       try {
         setIsLoading(true);
-        const api = new RadioBrowserApi(
-          "https://de1.api.radio-browser.info",
-          fetch.bind(window),
-          {
-            headers: {
-              "User-Agent": "SoundPulse Radio/1.0",
-              "Content-Type": "application/json",
-            },
+
+        // Try each server until one works
+        for (const server of API_SERVERS) {
+          try {
+            console.log(`Trying to fetch from: ${server}`);
+            const api = new RadioBrowserApi(server, fetch.bind(window), {
+              headers: {
+                "User-Agent": "SoundPulse Radio/1.0",
+                "Content-Type": "application/json",
+              },
+              mode: "cors",
+            });
+
+            const searchParams = {
+              limit,
+              hidebroken: true,
+              ...(lang && { language: lang }),
+              ...(country && { country }),
+              ...(stationGenre &&
+                stationGenre !== "all" && { tag: stationGenre }),
+              ...(codec && { codec }),
+              ...(bitrate > 0 && { bitrate }),
+            };
+
+            console.log("Fetching stations with params:", searchParams);
+            const rawStations = await api.searchStations(searchParams);
+            console.log(
+              `Successfully fetched ${rawStations.length} stations from ${server}`
+            );
+
+            // Keep full stations array in memory
+            let allStations = rawStations;
+
+            // Filter unique stations and exclude disliked ones
+            const seenNames = new Set();
+            const uniqueStations = allStations.filter((station) => {
+              if (!station.url || !station.name || !station.urlResolved)
+                return false;
+              const duplicate = seenNames.has(station.name);
+              const isDislikedStation = dislikedStations.some(
+                (s) => s.id === station.id
+              );
+              seenNames.add(station.name);
+              return !duplicate && !isDislikedStation;
+            });
+
+            console.log("Filtered stations:", uniqueStations.length);
+            setStations(uniqueStations);
+            updateDisplayedStations(uniqueStations, 0);
+            return uniqueStations;
+          } catch (error) {
+            console.log(`Failed to fetch from ${server}, trying next...`);
+            continue;
           }
-        );
+        }
 
-        const searchParams = {
-          limit,
-          ...(lang && { language: lang }),
-          ...(country && { country }),
-          ...(stationGenre && stationGenre !== "all" && { tag: stationGenre }),
-          ...(codec && { codec }),
-          ...(bitrate > 0 && { bitrate }),
-        };
-
-        const rawStations = await api.searchStations(searchParams);
-
-        // Filter unique stations and exclude disliked ones
-        const seenNames = new Set();
-        const uniqueStations = rawStations.filter((station) => {
-          if (!station.url || !station.name) return false;
-          const duplicate = seenNames.has(station.name);
-          const isDislikedStation = dislikedStations.some(
-            (s) => s.id === station.id
-          );
-          seenNames.add(station.name);
-          return !duplicate && !isDislikedStation;
-        });
-
-        setStations(uniqueStations);
-        updateDisplayedStations(uniqueStations, 0);
-        return uniqueStations;
+        // If all servers fail
+        throw new Error("All API servers failed");
       } catch (error) {
         console.error("Failed to fetch stations:", error);
         setErrorMessage(t("Failed to fetch stations"));
@@ -176,26 +227,16 @@ export const FetchProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [lang, country, stationGenre, limit, codec, bitrate, dislikedStations] // Add dislikedStations to dependencies
-  );
-
-  // Pagination handlers
-  const updateDisplayedStations = useCallback(
-    (stationsArray, page) => {
-      try {
-        const start = page * itemsPerPage;
-        const end = start + itemsPerPage;
-        const paginatedStations = stationsArray.slice(start, end);
-
-        setDisplayedStations(paginatedStations);
-        setHasMore(stationsArray.length > end);
-        setCurrentPage(page);
-      } catch (error) {
-        console.error("Pagination error:", error);
-        setErrorMessage(t("Error updating station list"));
-      }
-    },
-    [itemsPerPage]
+    [
+      lang,
+      country,
+      stationGenre,
+      limit,
+      codec,
+      bitrate,
+      dislikedStations,
+      updateDisplayedStations,
+    ]
   );
 
   const nextPage = useCallback(() => {
@@ -442,21 +483,41 @@ export const FetchProvider = ({ children }) => {
     }
   }, [displayMode, favorites, displayedStations]);
 
+  // Update fetchTopStations with CORS and multiple servers
   const fetchTopStations = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        "https://at1.api.radio-browser.info/json/stations/topvote/5"
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch top stations");
+      for (const server of API_SERVERS) {
+        try {
+          console.log(`Trying to fetch top stations from: ${server}`);
+          const response = await fetch(`${server}/json/stations/topvote/5`, {
+            headers: {
+              "User-Agent": "SoundPulse Radio/1.0",
+              "Content-Type": "application/json",
+            },
+            mode: "cors",
+          });
+
+          if (!response.ok) {
+            console.log(`Failed to fetch from ${server}, trying next...`);
+            continue;
+          }
+
+          const data = await response.json();
+          console.log(`Successfully fetched ${data.length} top stations`);
+          setStations(data);
+          updateDisplayedStations(data, 0);
+          setCurrentPage(0);
+          return;
+        } catch (error) {
+          console.log(`Error with ${server}:`, error);
+          continue;
+        }
       }
 
-      const data = await response.json();
-      setStations(data);
-      updateDisplayedStations(data, 0);
-      setCurrentPage(0);
+      // If all servers fail
+      throw new Error("All servers failed to fetch top stations");
     } catch (error) {
       console.error("Error fetching top stations:", error);
       setErrorMessage(t("Failed to fetch top stations"));
