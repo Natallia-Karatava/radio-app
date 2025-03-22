@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useMemo } from "react";
 import { FetchContext } from "../contexts/FetchContext";
 import { useTranslation } from "react-i18next";
 import img from "../images/logos/SoundPulse_signet.png";
@@ -22,6 +22,7 @@ const StationsList = () => {
     stationGenre,
     handleStationClick,
     deleteFavorite,
+    searchedStations,
   } = useContext(FetchContext);
 
   useEffect(() => {
@@ -31,28 +32,40 @@ const StationsList = () => {
 
       if (width <= 480) {
         setItemsPerPage(6);
-        // console.log("Mobile view:", width, "- 6 items");
       } else if (width <= 768) {
         setItemsPerPage(8);
-        // console.log("Tablet view:", width, "- 8 items");
       } else {
         setItemsPerPage(12);
-        // console.log("Desktop view:", width, "- 12 items");
       }
     };
 
+    // Initial call
     handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [setItemsPerPage]);
 
-  const stationsToDisplay = getStationsToDisplay();
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup function
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setItemsPerPage]); // Only depend on setItemsPerPage
+
+  const stationsToDisplay = useMemo(() => {
+    if (displayMode === "searched" && searchedStations?.length > 0) {
+      return searchedStations;
+    }
+    return getStationsToDisplay();
+  }, [displayMode, searchedStations, getStationsToDisplay]);
+
   const isEmpty =
-    displayMode === "favorites" &&
-    (!stationsToDisplay || stationsToDisplay.length === 0);
+    (displayMode === "favorites" &&
+      (!stationsToDisplay || stationsToDisplay.length === 0)) ||
+    (displayMode === "searched" &&
+      (!searchedStations || searchedStations.length === 0));
 
   const showPagination =
-    (displayMode === "all" || displayMode === "genre") &&
+    (displayMode === "all" ||
+      displayMode === "genre" ||
+      displayMode === "searched") &&
     stationsToDisplay?.length > 0 &&
     !isEmpty;
 
@@ -65,11 +78,19 @@ const StationsList = () => {
           ? t("My Favorites")
           : displayMode === "topvote"
           ? t("Top-5 Channels")
+          : displayMode === "searched"
+          ? t("Search Results")
           : t("Radio Stations")}
       </h2>
 
       {isEmpty ? (
-        <div className="empty-message">{t("No favorites yet")}</div>
+        <div className="empty-message">
+          {displayMode === "favorites"
+            ? t("No favorites yet")
+            : displayMode === "searched"
+            ? t("No stations found")
+            : t("No stations available")}
+        </div>
       ) : (
         <>
           <div className="stations-list">
