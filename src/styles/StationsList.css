@@ -84,14 +84,49 @@
   margin: auto;
   text-align: center;
 }
-.delete-button {
+.delete-container {
   position: absolute;
   bottom: 0;
   right: 0;
-  color: var(--brown);
+}
+.delete-button {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background-color: transparent;
   border: none;
-  padding: 0.5rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition-duration: 0.3s;
+  overflow: hidden;
+  position: relative;
+  gap: 2px;
+}
+
+.svgIcon {
+  width: 1.8rem;
+  transition-duration: 0.3s;
+}
+
+.svgIcon path {
+  fill: var(--brown);
+}
+
+.delete-button:hover .svgIcon path {
+  transition-duration: 0.3s;
+  fill: var(--error);
+}
+
+.bin-top {
+  transform-origin: bottom right;
+}
+.delete-button:hover .bin-top {
+  transition-duration: 0.5s;
+  transform: rotate(160deg);
 }
 
 .stations-container.empty-favorites {
