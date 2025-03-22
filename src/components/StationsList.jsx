@@ -8,6 +8,13 @@ import { MdDelete } from "react-icons/md";
 const StationsList = () => {
   const { t } = useTranslation();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [localItemsPerPage, setLocalItemsPerPage] = useState(() => {
+    const width = window.innerWidth;
+    return width <= 480 ? 6 : width <= 768 ? 8 : 12;
+  });
+
+  const [totalItems, setTotalItems] = useState(0);
+  const [hasMoreLocal, setHasMoreLocal] = useState(false);
 
   const {
     displayMode,
@@ -25,49 +32,93 @@ const StationsList = () => {
     searchedStations,
   } = useContext(FetchContext);
 
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      setWindowWidth(width);
-
-      if (width <= 480) {
-        setItemsPerPage(6);
-      } else if (width <= 768) {
-        setItemsPerPage(8);
-      } else {
-        setItemsPerPage(12);
-      }
-    };
-
-    // Initial call
-    handleResize();
-
-    // Add event listener
-    window.addEventListener("resize", handleResize);
-
-    // Cleanup function
-    return () => window.removeEventListener("resize", handleResize);
-  }, [setItemsPerPage]); // Only depend on setItemsPerPage
-
-  const stationsToDisplay = useMemo(() => {
-    if (displayMode === "searched" && searchedStations?.length > 0) {
-      return searchedStations;
-    }
-    return getStationsToDisplay();
-  }, [displayMode, searchedStations, getStationsToDisplay]);
-
+  // Move isEmpty declaration before it's used
   const isEmpty =
     (displayMode === "favorites" &&
       (!stationsToDisplay || stationsToDisplay.length === 0)) ||
     (displayMode === "searched" &&
       (!searchedStations || searchedStations.length === 0));
 
-  const showPagination =
-    (displayMode === "all" ||
-      displayMode === "genre" ||
-      displayMode === "searched") &&
-    stationsToDisplay?.length > 0 &&
-    !isEmpty;
+  // Update stationsToDisplay with better mode handling
+  const stationsToDisplay = useMemo(() => {
+    let sourceArray;
+    let total;
+
+    // Different handling for each display mode
+    switch (displayMode) {
+      case "searched":
+        sourceArray = searchedStations || [];
+        total = searchedStations?.length || 0;
+        break;
+      case "genre":
+      case "all":
+        sourceArray = getStationsToDisplay() || [];
+        total = sourceArray.length;
+        console.log("Genre/All Mode:", {
+          mode: displayMode,
+          total,
+          genre: stationGenre,
+        });
+        break;
+      default:
+        sourceArray = [];
+        total = 0;
+    }
+
+    // Calculate pagination
+    const start = currentPage * localItemsPerPage;
+    const end = start + localItemsPerPage;
+
+    console.log("Pagination State:", {
+      mode: displayMode,
+      total,
+      start,
+      end,
+      currentPage,
+      itemsPerPage: localItemsPerPage,
+    });
+
+    // Update states
+    setTotalItems(total);
+    setHasMoreLocal(end < total);
+
+    return sourceArray.slice(start, end);
+  }, [
+    displayMode,
+    searchedStations,
+    getStationsToDisplay,
+    currentPage,
+    localItemsPerPage,
+    stationGenre,
+  ]);
+
+  // Update resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setWindowWidth(width);
+
+      const newItemsPerPage = width <= 480 ? 6 : width <= 768 ? 8 : 12;
+
+      setLocalItemsPerPage(newItemsPerPage);
+      setItemsPerPage(newItemsPerPage); // Update context state
+    };
+
+    handleResize(); // Initial call
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setItemsPerPage]);
+
+  // Update showPagination logic after isEmpty and stationsToDisplay are defined
+  const showPagination = useMemo(() => {
+    return (
+      (displayMode === "all" ||
+        displayMode === "genre" ||
+        displayMode === "searched") &&
+      totalItems > localItemsPerPage &&
+      !isEmpty
+    );
+  }, [displayMode, totalItems, localItemsPerPage, isEmpty]);
 
   return (
     <div className={`stations-container ${isEmpty ? "empty-favorites" : ""}`}>
@@ -149,7 +200,7 @@ const StationsList = () => {
                   {t("Previous")}
                 </button>
               )}
-              {hasMore && (
+              {hasMoreLocal && ( // Use local hasMore instead of context hasMore
                 <button
                   className="button button-next-prev"
                   onClick={nextPage}
