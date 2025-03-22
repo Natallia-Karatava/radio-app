@@ -44,7 +44,7 @@ import { useContext } from "react";
 import { FetchContext } from "../contexts/FetchContext";
 
 const LikeComponent = () => {
-  const { like, currentStation, handleDislike, isDisliked } =
+  const { like, currentStation, handleDislike, isDisliked, favorites } =
     useContext(FetchContext);
 
   const handleLike = () => {
@@ -92,7 +92,17 @@ const LikeComponent = () => {
       <button onClick={handleShare} className={`${isShare ? "active" : ""}`}>
         Share
       </button>
-      <button onClick={handleLike}>Like</button>
+      <button
+        onClick={handleLike}
+        className={
+          currentStation &&
+          favorites?.some((fav) => fav.id === currentStation.id)
+            ? "active"
+            : ""
+        }
+      >
+        Like
+      </button>
       <button
         onClick={onDislike}
         className={isDisliked(currentStation?.id) ? "active" : ""}

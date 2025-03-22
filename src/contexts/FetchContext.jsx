@@ -45,32 +45,39 @@ export const FetchProvider = ({ children }) => {
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
   //LikeComponent.jsx
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    const savedFavorites = localStorage.getItem("favorites");
+    return savedFavorites ? JSON.parse(savedFavorites) : [];
+  });
+
   const [showFavorites, setShowFavorites] = useState(false);
 
   const [displayMode, setDisplayMode] = useState("all"); // 'all', 'favorites', 'genre'
 
   const like = useCallback(() => {
-    console.log("Like function called with current station:", currentStation);
+    if (!currentStation) return;
 
-    if (!currentStation) {
-      console.log("No current station in context");
-      return;
+    // Check if station is already in favorites
+    const isAlreadyFavorite = favorites.some(
+      (fav) => fav.id === currentStation.id
+    );
+
+    if (isAlreadyFavorite) {
+      console.log("Station already in favorites:", currentStation.name);
+      return; // Do nothing if already favorited
     }
 
-    setFavorites((prevFavorites) => {
-      const isExisting = prevFavorites.some(
-        (fav) => fav.id === currentStation.id
-      );
-      const newFavorites = isExisting
-        ? prevFavorites.filter((fav) => fav.id !== currentStation.id)
-        : [...prevFavorites, currentStation];
+    // Add to favorites only if not already present
+    const newFavorites = [...favorites, currentStation];
+    setFavorites(newFavorites);
+    localStorage.setItem("favorites", JSON.stringify(newFavorites));
+    console.log("Added to favorites:", currentStation.name);
+  }, [currentStation, favorites]);
 
-      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
-      console.log("Updated favorites:", newFavorites);
-      return newFavorites;
-    });
-  }, [currentStation]);
+  useEffect(() => {
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+  }, [favorites]);
+
   useEffect(() => {
     const savedFavorites = localStorage.getItem("favouriteStations");
     if (savedFavorites) {
