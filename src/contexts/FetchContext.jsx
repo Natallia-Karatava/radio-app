@@ -576,18 +576,23 @@ export const FetchProvider = ({ children }) => {
     }
   }, [dislikedStations]); // Re-run when disliked stations change
 
+  // Update getStationsToDisplay to return full arrays
   const getStationsToDisplay = useCallback(() => {
     switch (displayMode) {
       case "favorites":
         return favorites;
       case "genre":
-        return displayedStations;
+        // Return full stations array filtered by genre
+        return stations.filter((station) =>
+          station.tags?.includes(stationGenre)
+        );
       case "searched":
         return searchedStations;
       default:
-        return displayedStations;
+        // Return full stations array instead of displayedStations
+        return stations;
     }
-  }, [displayMode, favorites, displayedStations, searchedStations]); // Update getStationsToDisplay to include search results
+  }, [displayMode, favorites, stations, stationGenre, searchedStations]);
 
   const changeDisplayMode = useCallback((mode, genre = null) => {
     setDisplayMode(mode);

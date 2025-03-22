@@ -13,6 +13,7 @@ const StationsList = () => {
     return width <= 480 ? 6 : width <= 768 ? 8 : 12;
   });
 
+  const [currentSourceArray, setCurrentSourceArray] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [hasMoreLocal, setHasMoreLocal] = useState(false);
 
@@ -45,48 +46,58 @@ const StationsList = () => {
     (displayMode === "searched" &&
       (!searchedStations || searchedStations.length === 0));
 
-  // Update stationsToDisplay with better mode handling
+  // Update the stationsToDisplay useMemo with debug logging
   const stationsToDisplay = useMemo(() => {
-    let sourceArray;
-    let total;
+    let sourceArray = [];
+    let total = 0;
 
-    // Different handling for each display mode
+    // Get and validate source array
     switch (displayMode) {
       case "searched":
-        sourceArray = searchedStations || [];
-        total = searchedStations?.length || 0;
+        if (Array.isArray(searchedStations)) {
+          sourceArray = [...searchedStations];
+          total = searchedStations.length;
+        }
         break;
       case "genre":
       case "all":
-        sourceArray = getStationsToDisplay() || [];
-        total = sourceArray.length;
-        console.log("Genre/All Mode:", {
-          mode: displayMode,
-          total,
+        const stations = getStationsToDisplay();
+        console.log("GetStationsToDisplay Result:", {
+          rawStations: stations,
+          isArray: Array.isArray(stations),
+          length: stations?.length,
+          displayMode,
           genre: stationGenre,
         });
+
+        if (Array.isArray(stations)) {
+          sourceArray = stations;
+          total = stations.length;
+        }
         break;
       default:
         sourceArray = [];
         total = 0;
     }
 
+    // Store total before pagination
+    setTotalItems(total);
+
     // Calculate pagination
     const start = currentPage * localItemsPerPage;
     const end = start + localItemsPerPage;
 
-    console.log("Pagination State:", {
-      mode: displayMode,
-      total,
-      start,
-      end,
-      currentPage,
-      itemsPerPage: localItemsPerPage,
-    });
+    // Fix hasMore calculation - check if there are any items after the current slice
+    const hasMoreItems = total > end;
+    setHasMoreLocal(hasMoreItems);
 
-    // Update states
-    setTotalItems(total);
-    setHasMoreLocal(end < total);
+    console.log("Final Source Array:", {
+      mode: displayMode,
+      sourceArrayLength: sourceArray.length,
+      paginatedLength: sourceArray.slice(start, end).length,
+      hasMore: hasMoreItems,
+      total,
+    });
 
     return sourceArray.slice(start, end);
   }, [
@@ -115,16 +126,35 @@ const StationsList = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [setItemsPerPage]);
 
-  // Update showPagination logic after isEmpty and stationsToDisplay are defined
+  // Update showPagination calculation
   const showPagination = useMemo(() => {
-    return (
+    const totalPages = Math.ceil(totalItems / localItemsPerPage);
+    const shouldShowPagination =
       (displayMode === "all" ||
         displayMode === "genre" ||
         displayMode === "searched") &&
-      totalItems > localItemsPerPage &&
-      !isEmpty
-    );
-  }, [displayMode, totalItems, localItemsPerPage, isEmpty]);
+      totalPages > 1 && // Show pagination if there's more than one page
+      !isEmpty;
+
+    console.log("Pagination State:", {
+      mode: displayMode,
+      totalItems,
+      itemsPerPage: localItemsPerPage,
+      totalPages,
+      currentPage,
+      shouldShow: shouldShowPagination,
+      hasMore: hasMoreLocal,
+    });
+
+    return shouldShowPagination;
+  }, [
+    displayMode,
+    totalItems,
+    localItemsPerPage,
+    isEmpty,
+    hasMoreLocal,
+    currentPage,
+  ]);
 
   return (
     <div className={`stations-container ${isEmpty ? "empty-favorites" : ""}`}>

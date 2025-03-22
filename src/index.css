@@ -27,7 +27,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--beige) !important;
+  background-color: var(--beige);
+  color: var(--brown);
 }
 
 :root {
@@ -47,6 +48,13 @@ body {
   --border-radius-small: 10px;
   --border-radius-medium: 25px;
   --border-radius-big: 50px;
+}
+
+/*Dark mode*/
+
+[data-theme="dark"] {
+  --beige: #24160a;
+  --brown: #ffffff;
 }
 
 /* Font size */
