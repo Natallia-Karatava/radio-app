@@ -43,6 +43,7 @@ export const FetchProvider = ({ children }) => {
   const [currentStation, setCurrentStation] = useState(null);
   const [stationGenre, setStationGenre] = useState(null);
   const [filteredStations, setFilteredStations] = useState([]);
+  const [searchedStations, setSearchedStations] = useState([]); // Add new state for searched stations
 
   // UI state
   const [isLoading, setIsLoading] = useState(true);
@@ -588,10 +589,12 @@ export const FetchProvider = ({ children }) => {
         return favorites;
       case "genre":
         return displayedStations;
+      case "searched":
+        return searchedStations;
       default:
         return displayedStations;
     }
-  }, [displayMode, favorites, displayedStations]);
+  }, [displayMode, favorites, displayedStations, searchedStations]); // Update getStationsToDisplay to include search results
 
   const changeDisplayMode = useCallback((mode, genre = null) => {
     setDisplayMode(mode);
@@ -711,6 +714,57 @@ export const FetchProvider = ({ children }) => {
     return () => window.removeEventListener("error", errorHandler);
   }, []);
 
+  const searchStationsByName = useCallback(
+    async (searchValue) => {
+      if (!searchValue.trim()) {
+        setDisplayMode("all");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        // Fix the API endpoint URL
+        const response = await fetch(
+          `${API_BASE_URL}/json/stations/search?name=${encodeURIComponent(
+            searchValue
+          )}&limit=100`,
+          {
+            headers: {
+              "User-Agent": "RadioBrowserApp/1.0",
+              "Content-Type": "application/json",
+            },
+            mode: "cors",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const results = await response.json();
+
+        // Filter out disliked stations
+        const filteredResults = results.filter(
+          (station) => !dislikedStations.some((ds) => ds.id === station.id)
+        );
+
+        setSearchedStations(filteredResults);
+        setDisplayMode("searched");
+        updateDisplayedStations(filteredResults, 0);
+
+        if (filteredResults.length === 0) {
+          console.log("No stations found");
+        }
+      } catch (error) {
+        console.error("Search error:", error);
+        console.log("Search failed. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [API_BASE_URL, dislikedStations, updateDisplayedStations, t]
+  );
+
   const value = {
     // Station data
     stations,
@@ -766,6 +820,10 @@ export const FetchProvider = ({ children }) => {
 
     // Infinite scroll
     lastStationElementRef,
+
+    // Search functionality
+    searchStationsByName,
+    searchedStations,
   };
 
   return (

@@ -12,9 +12,29 @@ const SearchButtons = () => {
     displayMode,
     getRandomStation,
     fetchTopStations,
+    searchStationsByName, // Add this
   } = useContext(FetchContext);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState(""); // Add this
+
+  // Add search handler
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      searchStationsByName(searchValue);
+      setSearchValue(""); // Clear input after search
+    }
+  };
+
+  // Update search handler to handle both click and Enter key
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && searchValue.trim()) {
+      e.preventDefault();
+      searchStationsByName(searchValue);
+      setSearchValue(""); // Clear input after search
+    }
+  };
 
   return (
     <div className="search-buttons-container">
@@ -101,8 +121,16 @@ const SearchButtons = () => {
             id="station-search"
             className="search-input"
             placeholder={t("Search for channels...")}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onKeyPress={handleKeyPress}
           />
-          <button className="button search-button" id="search-button">
+          <button
+            className="button search-button"
+            id="search-button"
+            onClick={handleSearch}
+            disabled={!searchValue.trim()}
+          >
             <FaSearch size={24} /> {t("Search")}
           </button>
         </div>
