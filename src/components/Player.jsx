@@ -63,13 +63,12 @@ const Player = ({ audio }) => {
     isPlaying,
     handlePlayPause,
     errorMessage,
-    stations, // Add this
-    displayedStations,
-    like,
-    handleDislike,
-    isDisliked,
+    stations,
     nextStation,
     previousStation,
+    setCurrentStation,
+    isDisliked,
+    handleStationClick, // Add this if not already present
   } = useContext(FetchContext);
 
   //likeComponent
@@ -115,32 +114,96 @@ const Player = ({ audio }) => {
   // Add isChanging state
   const [isChanging, setIsChanging] = useState(false);
 
-  // Navigation handlers
-  const handlePreviousStation = async () => {
-    if (!stations?.length || isChanging) return;
+  // Add lastSuccessfulIndex to track position even when playback fails
+  const [lastSuccessfulIndex, setLastSuccessfulIndex] = useState(-1);
 
-    try {
-      setIsChanging(true);
-      await previousStation();
-    } catch (error) {
-      console.error("Error changing station:", error);
-    } finally {
-      setIsChanging(false);
-    }
-  };
-
+  // Update navigation handlers
   const handleNextStation = async () => {
-    if (!stations?.length || isChanging) return;
-
     try {
-      setIsChanging(true);
-      await nextStation();
+      if (!stations?.length) {
+        console.log("No stations available");
+        return;
+      }
+
+      let currentIndex = currentStation
+        ? stations.findIndex((s) => s.id === currentStation.id)
+        : lastSuccessfulIndex;
+
+      // If index is invalid, start from beginning
+      if (currentIndex < 0 || currentIndex >= stations.length) {
+        currentIndex = -1;
+      }
+
+      console.log("Next station clicked, current index:", currentIndex);
+
+      // Calculate next index with bounds check
+      const targetIndex = (currentIndex + 1) % stations.length;
+      console.log(`Moving to station index: ${targetIndex}`);
+
+      // Try to play the station
+      try {
+        await handleStationClick(stations[targetIndex]);
+        setLastSuccessfulIndex(targetIndex);
+      } catch (error) {
+        console.log("Station failed, trying next one");
+        if (targetIndex + 1 < stations.length) {
+          await handleStationClick(stations[targetIndex + 1]);
+          setLastSuccessfulIndex(targetIndex + 1);
+        }
+      }
     } catch (error) {
       console.error("Error changing station:", error);
-    } finally {
-      setIsChanging(false);
     }
   };
+
+  const handlePreviousStation = async () => {
+    try {
+      if (!stations?.length) {
+        console.log("No stations available");
+        return;
+      }
+
+      let currentIndex = currentStation
+        ? stations.findIndex((s) => s.id === currentStation.id)
+        : lastSuccessfulIndex;
+
+      // If index is invalid, start from end
+      if (currentIndex < 0 || currentIndex >= stations.length) {
+        currentIndex = stations.length;
+      }
+
+      console.log("Previous station clicked, current index:", currentIndex);
+
+      // Calculate previous index with bounds check
+      const targetIndex =
+        currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
+      console.log(`Moving to station index: ${targetIndex}`);
+
+      // Try to play the station
+      try {
+        await handleStationClick(stations[targetIndex]);
+        setLastSuccessfulIndex(targetIndex);
+      } catch (error) {
+        console.log("Station failed, trying previous one");
+        if (targetIndex > 0) {
+          await handleStationClick(stations[targetIndex - 1]);
+          setLastSuccessfulIndex(targetIndex - 1);
+        }
+      }
+    } catch (error) {
+      console.error("Error changing station:", error);
+    }
+  };
+
+  // Update useEffect to initialize lastSuccessfulIndex when component mounts
+  useEffect(() => {
+    if (currentStation && stations?.length) {
+      const index = stations.findIndex((s) => s.id === currentStation.id);
+      if (index !== -1) {
+        setLastSuccessfulIndex(index);
+      }
+    }
+  }, [currentStation, stations]);
 
   // Hilfsfunktion zum Formatieren der Tags
   const formatTags = (tags) => {
@@ -294,7 +357,7 @@ const Player = ({ audio }) => {
         <button
           className="previous-button"
           onClick={handlePreviousStation}
-          disabled={!currentStation || isLoading}
+          disabled={!stations?.length} // Remove isChanging check
         >
           <FaStepBackward size={24} />
         </button>
@@ -302,7 +365,7 @@ const Player = ({ audio }) => {
         <button
           className="play-button"
           onClick={handlePlayPause}
-          disabled={!currentStation || isLoading}
+          disabled={!currentStation || isLoading} // Keep this as is
         >
           {isPlaying ? (
             <FaPause size={30} className="fa-pause" />
@@ -314,7 +377,7 @@ const Player = ({ audio }) => {
         <button
           className="next-button"
           onClick={handleNextStation}
-          disabled={!currentStation || isLoading}
+          disabled={!stations?.length} // Remove isChanging check
         >
           <FaStepForward size={24} />
         </button>
