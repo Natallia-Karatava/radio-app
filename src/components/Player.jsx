@@ -68,7 +68,9 @@ const Player = ({ audio }) => {
     previousStation,
     setCurrentStation,
     isDisliked,
-    handleStationClick, // Add this if not already present
+    handleStationClick,
+    handleDislike, // Add this
+    like, // Add this if not already imported
   } = useContext(FetchContext);
 
   //likeComponent
@@ -83,6 +85,11 @@ const Player = ({ audio }) => {
     if (currentStation) {
       handleDislike(currentStation);
       console.log("Disliking current station:", currentStation);
+
+      // If currently playing station is disliked, try playing next station
+      if (isPlaying) {
+        handleNextStation();
+      }
     }
   };
   const url = window.location.href;
@@ -365,7 +372,9 @@ const Player = ({ audio }) => {
         <button
           className="play-button"
           onClick={handlePlayPause}
-          disabled={!currentStation || isLoading} // Keep this as is
+          disabled={
+            !currentStation || isLoading || isDisliked(currentStation?.id)
+          }
         >
           {isPlaying ? (
             <FaPause size={30} className="fa-pause" />

@@ -202,24 +202,34 @@ export const FetchProvider = ({ children }) => {
   // Audio control handlers
   const [isChangingStation, setIsChangingStation] = useState(false); // Add this state
 
+  // Add check for disliked station
   const handleStationClick = async (station) => {
-    if (isChangingStation) return; // Prevent multiple clicks during station change
+    if (isChangingStation) return;
 
     try {
       setIsChangingStation(true);
       setErrorMessage(t("Loading..."));
       setIsLoading(true);
 
+      // Clear any previous error states
+      setErrorMessage("");
+
+      // Only check if station is disliked, but don't show message
+      if (isDisliked(station.id)) {
+        setIsPlaying(false);
+        return;
+      }
+
       // Stop and cleanup current audio
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
-        // Remove all existing event listeners
         audioRef.current.removeEventListener("playing", null);
         audioRef.current.removeEventListener("error", null);
       }
 
       setIsPlaying(false);
+      setCurrentStation(station);
 
       const streamUrl = station.urlResolved || station.url;
       if (!streamUrl) {
@@ -237,10 +247,8 @@ export const FetchProvider = ({ children }) => {
             playbackStarted = true;
             setIsPlaying(true);
             setIsLoading(false);
-            setCurrentStation(station);
             setErrorMessage("");
             localStorage.setItem("lastPlayedStation", JSON.stringify(station));
-            console.log("Saved last played station:", station);
           };
 
           const onError = () => {
@@ -250,7 +258,6 @@ export const FetchProvider = ({ children }) => {
               setErrorMessage(
                 t("Cannot play this station. Please try another one.")
               );
-              setCurrentStation(null);
             }
           };
 
@@ -260,11 +267,7 @@ export const FetchProvider = ({ children }) => {
           audioRef.current = audio;
           await audio.play();
         } catch (error) {
-          if (url.startsWith("https://")) {
-            await tryPlay(url.replace("https://", "http://"));
-          } else {
-            throw error;
-          }
+          throw error;
         }
       };
 
@@ -273,7 +276,6 @@ export const FetchProvider = ({ children }) => {
       console.error("Station playback failed:", error);
       setIsPlaying(false);
       setIsLoading(false);
-      setCurrentStation(null);
       setErrorMessage(t("Cannot play this station. Please try another one."));
     } finally {
       setIsChangingStation(false);
