@@ -12,13 +12,12 @@ const SearchButtons = () => {
     displayMode,
     getRandomStation,
     fetchTopStations,
-    searchStationsByName, // Add this
+    searchStationsByName,
   } = useContext(FetchContext);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState(""); // Add this
+  const [searchValue, setSearchValue] = useState("");
 
-  // Add search handler
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchValue.trim()) {
@@ -27,12 +26,11 @@ const SearchButtons = () => {
     }
   };
 
-  // Update search handler to handle both click and Enter key
-  const handleKeyPress = (e) => {
+  const handleKeyPress = async (e) => {
     if (e.key === "Enter" && searchValue.trim()) {
       e.preventDefault();
-      searchStationsByName(searchValue);
-      setSearchValue(""); // Clear input after search
+      console.log("Enter pressed, searching for:", searchValue);
+      await searchStationsByName(searchValue);
     }
   };
 
@@ -104,7 +102,6 @@ const SearchButtons = () => {
                   </label>
                 </div>
               </div>
-              {/* Zusätzlicher Suchbutton im Dropdown-Menü */}
               <div className="dropdown-search-button-container">
                 <button className="button dropdown-search-button">
                   <FaSearch size={24} />
