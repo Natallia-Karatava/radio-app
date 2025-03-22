@@ -27,7 +27,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--beige) !important;
+  background-color: var(--beige);
   color: var(--brown);
 }
 
@@ -52,10 +52,9 @@ body {
 
 /*Dark mode*/
 
-[data-theme="dark"]  {
---beige:#24160a;
---brown:#ffffff;
-
+[data-theme="dark"] {
+  --beige: #24160a;
+  --brown: #ffffff;
 }
 
 /* Font size */
