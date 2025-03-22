@@ -94,9 +94,9 @@ const StationsList = () => {
       ) : (
         <>
           <div className="stations-list">
-            {stationsToDisplay?.map((station) => (
+            {stationsToDisplay?.map((station, index) => (
               <div
-                key={station.id || `station-${station.name}-${station.url}`}
+                key={index}
                 className={`station-item ${
                   currentStation?.id === station.id ? "active" : ""
                 }`}

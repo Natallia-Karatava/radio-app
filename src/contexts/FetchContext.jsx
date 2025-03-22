@@ -174,93 +174,86 @@ export const FetchProvider = ({ children }) => {
 
   const API_BASE_URL = "https://de1.api.radio-browser.info";
 
-  // Modify the api initialization
+  // Update the api initialization with better abort handling
   const api = useMemo(() => {
     const controllers = new Map();
 
-    const createNewController = (requestId) => {
-      // Cleanup existing controller for this request
+    const searchStations = async (params = {}) => {
+      const requestId = Math.random().toString(36).substring(7);
+
+      // Cleanup any existing request
       if (controllers.has(requestId)) {
-        const { controller, timeoutId } = controllers.get(requestId);
-        clearTimeout(timeoutId);
-        controller.abort();
+        controllers.get(requestId).abort();
         controllers.delete(requestId);
       }
 
-      // Create new controller with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-        controllers.delete(requestId);
-      }, 30000);
+      try {
+        const queryParams = new URLSearchParams();
 
-      controllers.set(requestId, { controller, timeoutId });
-      return controller.signal;
-    };
+        // Add search parameters
+        params.name && queryParams.append("name", params.name);
+        params.country && queryParams.append("country", params.country);
+        params.language && queryParams.append("language", params.language);
+        params.codec && queryParams.append("codec", params.codec);
+        params.minBitrate &&
+          queryParams.append("bitrateMin", params.minBitrate);
+        queryParams.append("limit", "100");
 
-    const fetchWithRetry = async (url, options, retries = 3) => {
-      const requestId = Math.random().toString(36).substring(7);
-
-      for (let i = 0; i < retries; i++) {
-        try {
-          options.signal = createNewController(requestId);
-          const response = await fetch(url, options);
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          // Cleanup on success
-          if (controllers.has(requestId)) {
-            const { timeoutId } = controllers.get(requestId);
-            clearTimeout(timeoutId);
-            controllers.delete(requestId);
-          }
-
-          return await response.json();
-        } catch (error) {
-          const isLastAttempt = i === retries - 1;
-          const isAborted = error.name === "AbortError";
-
-          if (isLastAttempt) throw error;
-          if (isAborted) {
-            console.log(`Attempt ${i + 1} timed out, retrying...`);
-            // Wait before retry with exponential backoff
-            await new Promise((resolve) =>
-              setTimeout(resolve, Math.pow(2, i) * 1000)
-            );
-            continue;
-          }
-          throw error;
+        // Use bytag endpoint for genre searches
+        let url;
+        if (params.tag && params.tag !== "all") {
+          url = `${API_BASE_URL}/json/stations/bytag/${encodeURIComponent(
+            params.tag
+          )}`;
+        } else {
+          url = `${API_BASE_URL}/json/stations/search?${queryParams}`;
         }
+
+        const controller = new AbortController();
+        controllers.set(requestId, controller);
+
+        const response = await fetch(url, {
+          headers: {
+            "User-Agent": "RadioBrowserApp/1.0",
+            "Content-Type": "application/json",
+          },
+          mode: "cors",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        controllers.delete(requestId); // Clean up successful request
+        return data;
+      } catch (error) {
+        if (error.name === "AbortError") {
+          console.log("Request was aborted");
+          return [];
+        }
+        throw error;
+      } finally {
+        controllers.delete(requestId);
       }
     };
 
     return {
-      searchStations: async (params) => {
-        try {
-          const url = `${API_BASE_URL}/json/stations/search?${new URLSearchParams(
-            params
-          )}`;
-          return await fetchWithRetry(url, { ...API_CONFIG }, 3);
-        } catch (error) {
-          console.error("API Error:", error);
-          if (error.name === "AbortError") {
-            throw new Error(t("Request timed out. Please try again."));
-          }
-          throw error;
-        }
-      },
+      searchStations,
       cleanup: () => {
-        // Cleanup all pending requests
-        controllers.forEach(({ controller, timeoutId }) => {
-          clearTimeout(timeoutId);
-          controller.abort();
+        // Only abort active requests
+        controllers.forEach((controller) => {
+          try {
+            controller.abort();
+          } catch (e) {
+            console.warn("Abort error:", e);
+          }
         });
         controllers.clear();
       },
     };
-  }, [t]);
+  }, [API_BASE_URL]);
 
   // Add cleanup effect
   useEffect(() => {
@@ -276,7 +269,7 @@ export const FetchProvider = ({ children }) => {
         setIsLoading(true);
 
         const searchParams = {
-          limit,
+          limit: 200,
           ...(lang && { language: lang }),
           ...(country && { country }),
           ...(stationGenre && stationGenre !== "all" && { tag: stationGenre }),
