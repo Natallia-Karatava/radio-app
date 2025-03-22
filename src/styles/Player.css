@@ -22,7 +22,7 @@
   left: 14%;
   width: 53%;
   height: 29%;
-
+  
   border-radius: 8px;
   padding: 15px;
   display: flex;
@@ -66,17 +66,17 @@
 }
 
 .action-button {
-  background: transparent;
-  border: none;
-  color: var(--primary);
-  padding: 10px;
-  cursor: pointer;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
 .action-button:hover {
   color: var(--black);
@@ -89,9 +89,14 @@
 /* Volume Controller Position */
 .volume-controller-position {
   position: absolute;
-  bottom: 41.3%;
-  left: 13.5%;
-  transform: translate(-50%, 50%);
+  bottom: 31.8%;
+  right: 79.5%;
+  transform: translate(50%, 50%);
+  width: 165px;
+  height: 165px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Play Button */
@@ -171,7 +176,8 @@
   }
 
   .station-text h3 {
-    font-size: 1rem;
+    font-size: 1.3rem;
+    margin-top: 4px;
   }
 
   .station-text p {
@@ -203,7 +209,8 @@
   }
 
   .station-text h3 {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
+    margin-top: -3px;
   }
 
   .station-text p {
@@ -211,26 +218,3 @@
   }
 }
 
-/*-----------------------------------*/
-.socialShare {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-  gap: 12px;
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  max-width: 300px;
-}
-.socialShare button {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.socialShare button:hover {
-  transform: scale(1.1);
-}
