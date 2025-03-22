@@ -425,20 +425,79 @@ export const FetchProvider = ({ children }) => {
   const getStationsToDisplay = useCallback(() => {
     switch (displayMode) {
       case "favorites":
-        return favorites;
+        console.log("Getting favorites to display:", {
+          favorites: favorites,
+          count: favorites?.length || 0,
+          displayMode: displayMode,
+        });
+        return favorites || [];
       case "genre":
+        return displayedStations; // Keep genre stations in displayedStations
+      case "topvote":
+        return displayedStations;
+      case "all":
         return displayedStations;
       default:
         return displayedStations;
     }
   }, [displayMode, favorites, displayedStations]);
 
-  const changeDisplayMode = useCallback((mode, genre = null) => {
-    setDisplayMode(mode);
-    if (genre) {
-      setStationGenre(genre);
+  const fetchTopStations = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        "https://at1.api.radio-browser.info/json/stations/topvote/5"
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch top stations");
+      }
+
+      const data = await response.json();
+      setStations(data);
+      updateDisplayedStations(data, 0);
+      setCurrentPage(0);
+    } catch (error) {
+      console.error("Error fetching top stations:", error);
+      setErrorMessage(t("Failed to fetch top stations"));
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  };
+
+  const changeDisplayMode = useCallback(
+    (mode, selectedGenre = null) => {
+      setDisplayMode(mode);
+
+      if (mode === "favorites") {
+        setErrorMessage("");
+        console.log("Changing to favorites mode:", {
+          favorites: favorites,
+          count: favorites?.length || 0,
+        });
+        return; // Don't modify stations or displayedStations for favorites
+      }
+
+      if (mode === "genre" && selectedGenre) {
+        console.log("Changing to genre mode:", selectedGenre);
+        setStationGenre(selectedGenre);
+        setupApi(selectedGenre);
+        return;
+      }
+
+      if (mode === "topvote") {
+        console.log("Changing to top voted stations mode");
+        fetchTopStations();
+        return;
+      }
+
+      // For "all" mode
+      console.log("Changing to all stations mode");
+      setStationGenre("all");
+      setupApi("all");
+    },
+    [favorites, setupApi, fetchTopStations]
+  );
 
   const getRandomStation = useCallback(async () => {
     try {
@@ -463,29 +522,6 @@ export const FetchProvider = ({ children }) => {
       setIsLoading(false);
     }
   }, [stations, handleStationClick, changeDisplayMode, setErrorMessage, t]);
-
-  const fetchTopStations = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        "https://at1.api.radio-browser.info/json/stations/topvote/5"
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch top stations");
-      }
-
-      const data = await response.json();
-      setStations(data);
-      updateDisplayedStations(data, 0);
-      setCurrentPage(0);
-    } catch (error) {
-      console.error("Error fetching top stations:", error);
-      setErrorMessage(t("Failed to fetch top stations"));
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Add navigation functions
   const nextStation = useCallback(async () => {
