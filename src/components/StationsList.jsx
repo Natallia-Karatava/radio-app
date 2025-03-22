@@ -27,9 +27,15 @@ const StationsList = () => {
     currentPage,
     setItemsPerPage,
     stationGenre,
+
     handleStationClick,
     deleteFavorite,
+
     searchedStations,
+
+
+
+
   } = useContext(FetchContext);
 
   // Move isEmpty declaration before it's used

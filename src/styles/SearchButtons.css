@@ -92,7 +92,7 @@
 }
 
 .filter-field input {
-    width: calc(100% - 40px);
+    width: 100%;
     padding: 8px 20px;
     text-align: center;
     border: 2px solid var(--primary);
@@ -161,7 +161,7 @@
 
 /* Styling für number input (Min. Bitrate) */
 .filter-field input[type="number"] {
-    width: calc(100% - 40px);
+    width: 100%;
     padding: 8px 20px;
     border: 2px solid var(--primary);
     background-color: var(--search);
@@ -276,8 +276,12 @@
     }
     
     .search-input {
+      
         border-radius: var(--border-radius-big);
         max-width: 100%;
+        width: 100%; /* Full width */
+        max-width: 50%; /* Match the max-width of buttons */
+    
     }
     
     .search-button {

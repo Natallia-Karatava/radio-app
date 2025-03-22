@@ -20,6 +20,7 @@ function App() {
   const { audioRef } = useContext(FetchContext);
   return (
     <>
+
       <UserProvider>
         <Navigation />
         <Header />
@@ -30,6 +31,8 @@ function App() {
         <StationsList />
         <Footer />
       </UserProvider>
+
+ 
     </>
   );
 }
