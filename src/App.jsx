@@ -8,10 +8,7 @@ import SearchButtons from "./components/SearchButtons";
 import Player from "./components/Player"; // Neuer Import für die Player-Komponente
 import StationsList from "./components/StationsList";
 import Footer from "./components/Footer";
-import PlayComponent from "./components/PlayComponent";
-
-import LikeComponent from "./components/LikeComponent";
-
+import ImagePreloader from "./components/ImagePreloader";
 import { FetchContext } from "./contexts/FetchContext";
 import { useContext } from "react";
 import { UserProvider } from "./contexts/UserContext";
@@ -20,8 +17,8 @@ function App() {
   const { audioRef } = useContext(FetchContext);
   return (
     <>
-
       <UserProvider>
+        <ImagePreloader />
         <Navigation />
         <Header />
         <RollingGallery autoplay={true} pauseOnHover={true} />
@@ -31,8 +28,6 @@ function App() {
         <StationsList />
         <Footer />
       </UserProvider>
-
- 
     </>
   );
 }
