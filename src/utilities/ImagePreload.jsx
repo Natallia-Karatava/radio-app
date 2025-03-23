@@ -1,13 +1,21 @@
 import { useEffect } from "react";
-import { useEffect } from "react";
-import { preloadAppImages } from "../utils/imagePreloader";
+import { preloadAppImages, appImages } from "./preloadAppImages";
 
 const ImagePreloader = () => {
   useEffect(() => {
-    preloadAppImages();
+    const loadImages = async () => {
+      try {
+        await preloadAppImages(Object.values(appImages));
+        console.log("Images preloaded successfully");
+      } catch (error) {
+        console.error("Failed to preload images:", error);
+      }
+    };
+
+    loadImages();
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 };
 
 export default ImagePreloader;
