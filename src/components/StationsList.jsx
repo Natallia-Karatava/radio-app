@@ -169,7 +169,6 @@ const StationsList = () => {
                     }`}
                     onClick={() => handleStationClick(station)}
                   >
-                    {" "}
                     {displayMode === "favorites" && (
                       <div className="delete-container">
                         <button

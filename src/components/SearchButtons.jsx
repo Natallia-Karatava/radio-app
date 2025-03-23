@@ -157,7 +157,7 @@ const SearchButtons = () => {
                 <label className="text-sm">{t("Channel name:")}</label>
                 <input
                   type="text"
-                  placeholder={t("Enter station name")}
+                  placeholder={t("Enter station name in English")}
                   value={filterValues.name}
                   onChange={(e) => handleFilterChange("name", e.target.value)}
                   onKeyPress={handleFilterKeyPress}
@@ -167,7 +167,7 @@ const SearchButtons = () => {
                 <label>{t("Country:")}</label>
                 <input
                   type="text"
-                  placeholder={t("Enter country")}
+                  placeholder={t("Enter country in English")}
                   value={filterValues.country}
                   onChange={(e) =>
                     handleFilterChange("country", e.target.value)
@@ -179,7 +179,7 @@ const SearchButtons = () => {
                 <label>{t("Language:")}</label>
                 <input
                   type="text"
-                  placeholder={t("Enter language")}
+                  placeholder={t("Enter language in English")}
                   value={filterValues.language}
                   onChange={(e) =>
                     handleFilterChange("language", e.target.value)
@@ -191,7 +191,7 @@ const SearchButtons = () => {
                 <label>{t("Genre:")}</label>
                 <input
                   type="text"
-                  placeholder={t("Enter genre")}
+                  placeholder={t("Enter genre in English")}
                   value={filterValues.genre}
                   onChange={(e) => handleFilterChange("genre", e.target.value)}
                   onKeyPress={handleFilterKeyPress}

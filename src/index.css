@@ -55,7 +55,7 @@ body {
 
 [data-theme="dark"] {
   --beige: #24160a;
-  --brown: #ffffff;
+  --brown: var(--title);
   --title: #ffdbae;
   .icon {
     color: var(--primary);
@@ -64,6 +64,13 @@ body {
     }
   }
   .title {
+    color: var(--title);
+  }
+  .language-dropdown {
+    background-color: var(--search);
+    color: var(--brown);
+  }
+  .checkbox-group label {
     color: var(--title);
   }
 }
