@@ -53,6 +53,11 @@ export const FetchProvider = ({ children }) => {
   const [showFavorites, setShowFavorites] = useState(false);
 
   const [displayMode, setDisplayMode] = useState("all"); // 'all', 'favorites', 'genre'
+  const [searchTerm, setSearchTerm] = useState(""); // Add after other state declarations
+
+  // Add search state
+  const [searchResults, setSearchResults] = useState([]);
+
   // Pagination handlers
   const updateDisplayedStations = useCallback(
     (stationsArray, page) => {
@@ -153,9 +158,21 @@ export const FetchProvider = ({ children }) => {
     "https://de2.api.radio-browser.info",
     "https://de3.api.radio-browser.info",
     "https://uk1.api.radio-browser.info",
+    "https://uk2.api.radio-browser.info",
     "https://us1.api.radio-browser.info",
+    "https://us2.api.radio-browser.info",
     "https://fi1.api.radio-browser.info",
+    "https://pl1.api.radio-browser.info",
+    "https://ru1.api.radio-browser.info",
+    "https://ca1.api.radio-browser.info",
+    "https://au1.api.radio-browser.info",
+    "https://br1.api.radio-browser.info",
+    "https://za1.api.radio-browser.info",
+    "https://in1.api.radio-browser.info",
+    "https://jp1.api.radio-browser.info",
+    "https://sg1.api.radio-browser.info",
   ];
+  const API_BASE_URL = API_SERVERS[0];
 
   const setupApi = useCallback(
     async (genre) => {
@@ -463,25 +480,45 @@ export const FetchProvider = ({ children }) => {
     }
   }, [dislikedStations]); // Re-run when disliked stations change
 
+  // Update getStationsToDisplay function
   const getStationsToDisplay = useCallback(() => {
+    console.log("Current display mode:", displayMode, {
+      favorites: favorites?.length,
+      searchResults: searchResults?.length,
+      displayed: displayedStations?.length,
+      currentPage,
+      itemsPerPage,
+    });
+
     switch (displayMode) {
-      case "favorites":
-        console.log("Getting favorites to display:", {
-          favorites: favorites,
-          count: favorites?.length || 0,
-          displayMode: displayMode,
+      case "search":
+        const start = currentPage * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedResults = searchResults.slice(start, end);
+        setHasMore(searchResults.length > end);
+        console.log("Search pagination:", {
+          total: searchResults.length,
+          showing: paginatedResults.length,
+          start,
+          end,
+          page: currentPage,
+          hasMore: searchResults.length > end,
         });
+        return paginatedResults;
+
+      case "favorites":
         return favorites || [];
-      case "genre":
-        return displayedStations; // Keep genre stations in displayedStations
-      case "topvote":
-        return displayedStations;
-      case "all":
-        return displayedStations;
       default:
         return displayedStations;
     }
-  }, [displayMode, favorites, displayedStations]);
+  }, [
+    displayMode,
+    favorites,
+    displayedStations,
+    searchResults,
+    currentPage,
+    itemsPerPage,
+  ]);
 
   // Update fetchTopStations with CORS and multiple servers
   const fetchTopStations = async () => {
@@ -616,6 +653,109 @@ export const FetchProvider = ({ children }) => {
     }
   }, [currentStation, stations, handleStationClick, setErrorMessage, t]);
 
+  // Update searchStationsByName function pagination part
+  const searchStationsByName = useCallback(
+    async (searchValue) => {
+      if (!searchValue.trim()) {
+        setDisplayMode("all");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+        for (const server of API_SERVERS) {
+          try {
+            console.log(`Searching on ${server} for: "${searchValue}"`);
+
+            const response = await fetch(
+              `${server}/json/stations/search?name=${encodeURIComponent(
+                searchValue
+              )}&limit=100`,
+              {
+                headers: {
+                  "User-Agent": "RadioBrowserApp/1.0",
+                  "Content-Type": "application/json",
+                },
+                mode: "cors",
+              }
+            );
+
+            if (!response.ok) {
+              console.log(`Search failed on ${server}, trying next...`);
+              continue;
+            }
+
+            const results = await response.json();
+            console.log(`Raw results from ${server}:`, results.length);
+
+            // Only filter for valid URLs, no dislike check
+            const filteredResults = results.filter((station) => {
+              if (!station.name) {
+                console.log("Rejected - no name:", station);
+                return false;
+              }
+
+              const hasValidUrl = Boolean(station.url || station.urlResolved);
+              if (!hasValidUrl) {
+                console.log("Rejected - no valid URL:", station.name);
+                return false;
+              }
+
+              return true;
+            });
+
+            console.log(`Filtered results: ${filteredResults.length} stations`);
+
+            if (filteredResults.length > 0) {
+              setStations(filteredResults);
+              setSearchResults(filteredResults);
+              setDisplayMode("search");
+              setCurrentPage(0);
+              // Don't use updateDisplayedStations here, let getStationsToDisplay handle pagination
+              setHasMore(filteredResults.length > itemsPerPage);
+              return;
+            }
+          } catch (error) {
+            console.log(`Error with ${server}:`, error);
+            continue;
+          }
+        }
+
+        throw new Error("No stations found");
+      } catch (error) {
+        console.error("Search error:", error);
+        setErrorMessage(t("No stations found matching your search"));
+        setSearchResults([]);
+        setDisplayedStations([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [updateDisplayedStations, t, itemsPerPage]
+  );
+
+  // Update nextSearchPage function
+  const nextSearchPage = useCallback(() => {
+    if (displayMode === "search") {
+      const nextPage = currentPage + 1;
+      const totalPages = Math.ceil(searchResults.length / itemsPerPage);
+      if (nextPage < totalPages) {
+        setCurrentPage(nextPage);
+        console.log(`Moving to search page ${nextPage + 1} of ${totalPages}`);
+      }
+    }
+  }, [displayMode, currentPage, searchResults.length, itemsPerPage]);
+
+  // Update previousSearchPage function
+  const previousSearchPage = useCallback(() => {
+    if (displayMode === "search" && currentPage > 0) {
+      const prevPage = currentPage - 1;
+      setCurrentPage(prevPage);
+      console.log(`Moving to search page ${prevPage + 1}`);
+    }
+  }, [displayMode, currentPage]);
+
   const contextValue = useMemo(
     () => ({
       // Station data
@@ -673,6 +813,15 @@ export const FetchProvider = ({ children }) => {
       // Navigation functions
       nextStation,
       previousStation,
+
+      // Search functionality
+      searchStationsByName,
+      searchTerm,
+      setSearchTerm,
+
+      // Search pagination
+      nextSearchPage,
+      previousSearchPage,
     }),
     [
       stations,
@@ -716,6 +865,11 @@ export const FetchProvider = ({ children }) => {
       dislikedStations,
       nextStation,
       previousStation,
+      searchStationsByName,
+      searchTerm,
+      setSearchTerm,
+      nextSearchPage,
+      previousSearchPage,
     ]
   );
 

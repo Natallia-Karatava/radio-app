@@ -4,24 +4,31 @@ import { useTranslation } from "react-i18next";
 import FormLogin from "./FormLogin";
 import { useUser } from "../contexts/UserContext";
 import "../styles/Navigation.css";
+import en from "../images/icons/en.webp";
+import de from "../images/icons/de.webp";
+import fr from "../images/icons/fr.webp";
+import es from "../images/icons/es.webp";
+import zh from "../images/icons/zh.webp";
+import ar from "../images/icons/ar.webp";
 
 const Navigation = () => {
   const { t, i18n } = useTranslation();
   const [showLanguages, setShowLanguages] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [icon, setIcon] = useState(<FaGlobe />);
   const languageRef = useRef(null);
   const accountRef = useRef(null);
 
   const { isAuthenticated, logoutUser } = useUser();
 
   const languages = [
-    { code: "de", flag: "🇩🇪", name: t("German") },
-    { code: "en", flag: "🇺🇸", name: t("English") },
-    { code: "fr", flag: "🇫🇷", name: t("French") },
-    { code: "es", flag: "🇪🇸", name: t("Spanish") },
-    { code: "zh", flag: "🇨🇳", name: t("Chinese") },
-    { code: "ar", flag: "🇸🇦", name: t("Arabic") },
+    { code: "de", flag: "🇩🇪", name: t("German"), url: de },
+    { code: "en", flag: "🇺🇸", name: t("English"), url: en },
+    { code: "fr", flag: "🇫🇷", name: t("French"), url: fr },
+    { code: "es", flag: "🇪🇸", name: t("Spanish"), url: es },
+    { code: "zh", flag: "🇨🇳", name: t("Chinese"), url: zh },
+    { code: "ar", flag: "🇸🇦", name: t("Arabic"), url: ar },
   ];
 
   const toggleLanguages = () => {
@@ -37,6 +44,19 @@ const Navigation = () => {
   const handleLanguageSelect = (langCode) => {
     i18n.changeLanguage(langCode);
     setShowLanguages(false);
+    let source = null;
+    langCode === "en"
+      ? (source = en)
+      : langCode === "fr"
+      ? (source = fr)
+      : langCode === "de"
+      ? (source = de)
+      : langCode === "ar"
+      ? (source = ar)
+      : langCode === "zh"
+      ? (source = zh)
+      : (source = es);
+    setIcon(<img src={source} alt="lang icon" />);
   };
 
   const handleLoginClick = () => {
@@ -81,7 +101,7 @@ const Navigation = () => {
             ref={languageRef}
             onClick={toggleLanguages}
           >
-            <FaGlobe />
+            {icon}
             {showLanguages && (
               <ul className="language-dropdown">
                 {languages.map(({ code, flag, name }) => (
