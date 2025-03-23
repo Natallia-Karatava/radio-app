@@ -417,4 +417,28 @@
     .filter-section .button {
         color: var(--brown);
     }
+
+    /* Bestehende Regeln */
+    .filter-field input,
+    .search-input {
+        color: var(--brown);
+    }
+
+    /* Bitrate Eingabefeld spezifisch ansprechen */
+    .filter-field input[type="number"] {
+        color: var(--brown);
+    }
+
+    /* Checkbox Haken Farbe */
+    .checkbox-group input[type="checkbox"]:checked::before {
+        color: var(--brown);
+    }
+
+    /* Button-Text */
+    .button,
+    .search-button,
+    .filter-button,
+    .dropdown-search-button {
+        color: var(--brown);
+    }
 }
