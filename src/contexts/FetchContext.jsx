@@ -480,38 +480,45 @@ export const FetchProvider = ({ children }) => {
     }
   }, [dislikedStations]); // Re-run when disliked stations change
 
+  // Update getStationsToDisplay function
   const getStationsToDisplay = useCallback(() => {
     console.log("Current display mode:", displayMode, {
       favorites: favorites?.length,
       searchResults: searchResults?.length,
       displayed: displayedStations?.length,
+      currentPage,
+      itemsPerPage,
     });
 
     switch (displayMode) {
-      case "favorites":
-        console.log("Getting favorites to display:", {
-          favorites: favorites,
-          count: favorites?.length || 0,
-          displayMode: displayMode,
-        });
-        return favorites || [];
       case "search":
-        console.log("Getting search results to display:", {
-          stations: searchResults,
-          count: searchResults?.length || 0,
-          displayMode: displayMode,
+        const start = currentPage * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedResults = searchResults.slice(start, end);
+        setHasMore(searchResults.length > end);
+        console.log("Search pagination:", {
+          total: searchResults.length,
+          showing: paginatedResults.length,
+          start,
+          end,
+          page: currentPage,
+          hasMore: searchResults.length > end,
         });
-        return searchResults.length > 0 ? searchResults : displayedStations;
-      case "genre":
-        return displayedStations;
-      case "topvote":
-        return displayedStations;
-      case "all":
-        return displayedStations;
+        return paginatedResults;
+
+      case "favorites":
+        return favorites || [];
       default:
         return displayedStations;
     }
-  }, [displayMode, favorites, displayedStations, searchResults]);
+  }, [
+    displayMode,
+    favorites,
+    displayedStations,
+    searchResults,
+    currentPage,
+    itemsPerPage,
+  ]);
 
   // Update fetchTopStations with CORS and multiple servers
   const fetchTopStations = async () => {
@@ -646,7 +653,7 @@ export const FetchProvider = ({ children }) => {
     }
   }, [currentStation, stations, handleStationClick, setErrorMessage, t]);
 
-  // Update searchStationsByName function
+  // Update searchStationsByName function pagination part
   const searchStationsByName = useCallback(
     async (searchValue) => {
       if (!searchValue.trim()) {
@@ -704,7 +711,9 @@ export const FetchProvider = ({ children }) => {
               setStations(filteredResults);
               setSearchResults(filteredResults);
               setDisplayMode("search");
-              updateDisplayedStations(filteredResults, 0);
+              setCurrentPage(0);
+              // Don't use updateDisplayedStations here, let getStationsToDisplay handle pagination
+              setHasMore(filteredResults.length > itemsPerPage);
               return;
             }
           } catch (error) {
@@ -723,8 +732,29 @@ export const FetchProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [updateDisplayedStations, t]
+    [updateDisplayedStations, t, itemsPerPage]
   );
+
+  // Update nextSearchPage function
+  const nextSearchPage = useCallback(() => {
+    if (displayMode === "search") {
+      const nextPage = currentPage + 1;
+      const totalPages = Math.ceil(searchResults.length / itemsPerPage);
+      if (nextPage < totalPages) {
+        setCurrentPage(nextPage);
+        console.log(`Moving to search page ${nextPage + 1} of ${totalPages}`);
+      }
+    }
+  }, [displayMode, currentPage, searchResults.length, itemsPerPage]);
+
+  // Update previousSearchPage function
+  const previousSearchPage = useCallback(() => {
+    if (displayMode === "search" && currentPage > 0) {
+      const prevPage = currentPage - 1;
+      setCurrentPage(prevPage);
+      console.log(`Moving to search page ${prevPage + 1}`);
+    }
+  }, [displayMode, currentPage]);
 
   const contextValue = useMemo(
     () => ({
@@ -788,6 +818,10 @@ export const FetchProvider = ({ children }) => {
       searchStationsByName,
       searchTerm,
       setSearchTerm,
+
+      // Search pagination
+      nextSearchPage,
+      previousSearchPage,
     }),
     [
       stations,
@@ -834,6 +868,8 @@ export const FetchProvider = ({ children }) => {
       searchStationsByName,
       searchTerm,
       setSearchTerm,
+      nextSearchPage,
+      previousSearchPage,
     ]
   );
 
