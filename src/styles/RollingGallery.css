@@ -1,6 +1,7 @@
 .gallery-container {
+  margin: auto;
   position: relative;
-  width: 100%;
+  width: 90%;
   height: 160px; /* Fixed height to accommodate images + border */
   /* overflow: hidden; */
 }
@@ -15,6 +16,7 @@
 
 .gallery-gradient-left {
   left: 0;
+  transform: translate(-87%, -30%);
   background: linear-gradient(
     to left,
     rgba(255, 255, 255, 0) 0%,
@@ -24,6 +26,7 @@
 
 .gallery-gradient-right {
   right: 0;
+  transform: translate(87%, -30%);
   background: linear-gradient(
     to right,
     rgba(255, 255, 255, 0) 0%,
