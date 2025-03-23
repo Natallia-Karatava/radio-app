@@ -10,6 +10,7 @@ import {
 import { RadioBrowserApi } from "radio-browser-api";
 import { useTranslation } from "react-i18next";
 import "../styles/StationsList.css";
+import countries from "../data/countries.json";
 
 export const FetchContext = createContext({
   nextStation: () => {},
@@ -23,7 +24,7 @@ export const FetchProvider = ({ children }) => {
   // Search parameters
   const [lang, setLang] = useState("");
   const [country, setCountry] = useState("");
-  const [limit, setLimit] = useState(1000);
+  const [limit, setLimit] = useState(300);
   const [codec, setCodec] = useState("");
   const [bitrate, setBitrate] = useState(0);
 
@@ -378,7 +379,7 @@ export const FetchProvider = ({ children }) => {
   const resetToDefaults = useCallback(() => {
     setLang("");
     setCountry("");
-    setLimit(1000);
+    setLimit(300);
     setCodec("");
     setBitrate(0);
     setStationGenre("all");
@@ -756,6 +757,138 @@ export const FetchProvider = ({ children }) => {
     }
   }, [displayMode, currentPage]);
 
+  // Add this function in the FetchProvider component
+  const searchStationsByFilters = useCallback(
+    async (filters) => {
+      try {
+        setIsLoading(true);
+        setErrorMessage("");
+
+        // Trim and validate all filter values
+        const trimmedFilters = Object.entries(filters).reduce(
+          (acc, [key, value]) => {
+            if (typeof value === "string") {
+              const trimmed = value.trim();
+              if (trimmed) acc[key] = trimmed;
+            } else {
+              acc[key] = value; // Keep non-string values (like arrays) as is
+            }
+            return acc;
+          },
+          {}
+        );
+
+        // Use imported countries data for mapping
+        let countrycode = "";
+        if (trimmedFilters.country) {
+          const countryKey = Object.keys(countries).find(
+            (key) => key.toLowerCase() === trimmedFilters.country.toLowerCase()
+          );
+          countrycode = countryKey
+            ? countries[countryKey]
+            : trimmedFilters.country.toUpperCase();
+        }
+
+        console.log(
+          "Using country code:",
+          countrycode,
+          "for country:",
+          trimmedFilters.country
+        );
+
+        for (const server of API_SERVERS) {
+          try {
+            const params = new URLSearchParams({
+              limit: "100",
+              hidebroken: true,
+              ...(trimmedFilters.name && { name: trimmedFilters.name }),
+              ...(countrycode && { countrycode }),
+              ...(trimmedFilters.language && {
+                language: trimmedFilters.language.toLowerCase(),
+              }),
+              ...(trimmedFilters.genre && {
+                tag: trimmedFilters.genre.toLowerCase(),
+              }),
+              ...(trimmedFilters.bitrate && {
+                bitrateMin: trimmedFilters.bitrate,
+              }),
+              ...(trimmedFilters.codec?.length && {
+                codec: trimmedFilters.codec.join(","),
+              }),
+            });
+
+            console.log(
+              `Searching on ${server} with params:`,
+              params.toString()
+            );
+
+            const response = await fetch(
+              `${server}/json/stations/search?${params}`,
+              {
+                headers: {
+                  "User-Agent": "RadioBrowserApp/1.0",
+                  "Content-Type": "application/json",
+                },
+                mode: "cors",
+              }
+            );
+
+            if (!response.ok) {
+              console.log(`Server ${server} returned ${response.status}`);
+              continue;
+            }
+
+            const results = await response.json();
+            console.log(`Found ${results.length} stations on ${server}`);
+
+            // Filter valid stations
+            const filteredResults = results.filter(
+              (station) => station.name && (station.url || station.urlResolved)
+            );
+
+            console.log(
+              `After filtering: ${filteredResults.length} valid stations`
+            );
+
+            if (filteredResults.length > 0) {
+              // Update all necessary states
+              setStations(filteredResults);
+              setSearchResults(filteredResults);
+              setDisplayMode("search");
+              setCurrentPage(0);
+
+              // Calculate initial pagination
+              const initialResults = filteredResults.slice(0, itemsPerPage);
+              setDisplayedStations(initialResults);
+              setHasMore(filteredResults.length > itemsPerPage);
+
+              console.log("Search pagination initialized:", {
+                total: filteredResults.length,
+                showing: initialResults.length,
+                hasMore: filteredResults.length > itemsPerPage,
+              });
+
+              return;
+            }
+          } catch (error) {
+            console.log(`Error with ${server}:`, error.message);
+            continue;
+          }
+        }
+
+        throw new Error("No stations found");
+      } catch (error) {
+        console.error("Filter search error:", error.message);
+        setErrorMessage(t("No stations found matching your filters"));
+        setSearchResults([]);
+        setDisplayedStations([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [itemsPerPage, t]
+  );
+
   const contextValue = useMemo(
     () => ({
       // Station data
@@ -822,6 +955,9 @@ export const FetchProvider = ({ children }) => {
       // Search pagination
       nextSearchPage,
       previousSearchPage,
+
+      // Filter search functionality
+      searchStationsByFilters,
     }),
     [
       stations,
@@ -870,6 +1006,7 @@ export const FetchProvider = ({ children }) => {
       setSearchTerm,
       nextSearchPage,
       previousSearchPage,
+      searchStationsByFilters,
     ]
   );
 
