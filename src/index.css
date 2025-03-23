@@ -264,3 +264,9 @@ h4 {
     height: 100%;
   }
 }
+button:focus,
+button:focus-visible {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
