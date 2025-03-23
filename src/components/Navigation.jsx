@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { FaMoon, FaUserCircle, FaGlobe } from "react-icons/fa";
+import { IoBulb } from "react-icons/io5";
 import { useTranslation } from "react-i18next";
 import FormLogin from "./FormLogin";
 import { useUser } from "../contexts/UserContext";
@@ -11,6 +12,8 @@ import es from "../images/icons/es.webp";
 import zh from "../images/icons/zh.webp";
 import ar from "../images/icons/ar.webp";
 
+import { ThemeContext } from "../contexts/ThemeContext";
+
 const Navigation = () => {
   const { t, i18n } = useTranslation();
   const [showLanguages, setShowLanguages] = useState(false);
@@ -19,6 +22,8 @@ const Navigation = () => {
   const [icon, setIcon] = useState(<FaGlobe />);
   const languageRef = useRef(null);
   const accountRef = useRef(null);
+
+  const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
 
   const { isAuthenticated, logoutUser } = useUser();
 
@@ -92,8 +97,8 @@ const Navigation = () => {
     <>
       <nav className="navbar">
         <div className="nav-left">
-          <div className="icon">
-            <FaMoon />
+          <div className="icon" id="theme-icon" onClick={toggleDarkMode}>
+            {(isDarkMode && <IoBulb />) || <FaMoon />}
           </div>
 
           <div

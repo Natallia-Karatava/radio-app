@@ -144,6 +144,13 @@ const StationsList = () => {
     stationsToDisplay?.length > 0 &&
     !isEmpty;
 
+  const truncateText = (text, maxLength) => {
+    if (!text) return "";
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
+  };
+
   return (
     <div className={`stations-container ${isEmpty ? "empty-favorites" : ""}`}>
       <h2 className="h2 text-center">
@@ -235,15 +242,18 @@ const StationsList = () => {
                     <div className="station-description">
                       <p className="text-m">{station.name}</p>
                       <p className="text-xs">
-                        {station.country}:{" "}
-                        {Array.isArray(station.tags)
-                          ? station.tags.join(", ")
-                          : typeof station.tags === "string"
-                          ? station.tags
-                              .split(/(?=[A-Z])/)
-                              .join(", ")
-                              .toLowerCase()
-                          : station.tags}
+                        {station.country}:
+                        {truncateText(
+                          Array.isArray(station.tags)
+                            ? station.tags.join(", ")
+                            : typeof station.tags === "string"
+                            ? station.tags
+                                .split(/(?=[A-Z])/)
+                                .join(", ")
+                                .toLowerCase()
+                            : station.tags,
+                          150
+                        )}
                       </p>
                       <p className="text-xs">
                         {station.codec} • {station.bitrate}kbps
@@ -306,14 +316,17 @@ const StationsList = () => {
                       <p className="text-m">{station.name}</p>
                       <p className="text-xs">
                         {station.country}:{" "}
-                        {Array.isArray(station.tags)
-                          ? station.tags.join(", ")
-                          : typeof station.tags === "string"
-                          ? station.tags
-                              .split(/(?=[A-Z])/)
-                              .join(", ")
-                              .toLowerCase()
-                          : station.tags}
+                        {truncateText(
+                          Array.isArray(station.tags)
+                            ? station.tags.join(", ")
+                            : typeof station.tags === "string"
+                            ? station.tags
+                                .split(/(?=[A-Z])/)
+                                .join(", ")
+                                .toLowerCase()
+                            : station.tags,
+                          150
+                        )}
                       </p>
                       <p className="text-xs">
                         {station.codec} • {station.bitrate}kbps
