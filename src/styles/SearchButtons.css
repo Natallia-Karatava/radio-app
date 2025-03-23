@@ -386,3 +386,35 @@
         font-size: 16px;
     }
 }
+.filter-field input,
+.search-input {
+    color: var(--black);
+}
+@media (prefers-color-scheme: dark) {
+    .filter-field input,
+    .search-input {
+        color: var(--brown);
+    }
+}
+@media (prefers-color-scheme: dark) {
+    /* Bestehende Regeln */
+    .filter-field input,
+    .search-input {
+        color: var(--brown);
+    }
+
+    /* Neue Regeln für Button-Text */
+    .button,
+    .search-button,
+    .filter-button,
+    .dropdown-search-button {
+        color: var(--brown);
+    }
+
+    /* Falls Sie spezifische Button-Klassen haben */
+    .top-buttons .button,
+    .bottom-section .button,
+    .filter-section .button {
+        color: var(--brown);
+    }
+}
