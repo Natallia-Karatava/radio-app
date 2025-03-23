@@ -56,6 +56,16 @@ body {
 [data-theme="dark"] {
   --beige: #24160a;
   --brown: #ffffff;
+  --title: #ffdbae;
+  .icon {
+    color: var(--primary);
+    &:hover {
+      color: var(--title);
+    }
+  }
+  .title {
+    color: var(--title);
+  }
 }
 
 /* Font size */
