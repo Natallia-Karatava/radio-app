@@ -32,15 +32,6 @@ const FormLogin = ({ onClose }) => {
     setMessage(t("Logging in..."));
 
     await loginUser(username, password);
-
-    if (isAuthenticated) {
-      setMessage(t("Login successful!"));
-      setTimeout(() => {
-        onClose();
-      }, 3000);
-    } else {
-      setMessage(t("Invalid username or password."));
-    }
   };
 
   const handleSignUp = () => {
