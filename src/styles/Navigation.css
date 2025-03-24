@@ -3,11 +3,10 @@
   justify-content: flex-end;
   align-items: center;
   padding: 0.5rem 4rem;
-  /* background: var(--secondary); */
-  background: var(--beige);
+  /* background: var(--nav); */
+  
   height: 60px;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .nav-left {
@@ -18,7 +17,7 @@
 
 .icon {
   cursor: pointer;
-  color: var(--black);
+  color: var(--brown);
   position: relative;
   transition: transform 0.2s;
 }
@@ -34,7 +33,6 @@
   margin: 0;
   background: var(--search);
   color: var(--black);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   position: absolute;
   top: 50px;
