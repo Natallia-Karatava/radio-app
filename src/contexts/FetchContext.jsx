@@ -58,6 +58,12 @@ export const FetchProvider = ({ children }) => {
 
   // Add search state
   const [searchResults, setSearchResults] = useState([]);
+  useEffect(
+    (messageKey) => {
+      setErrorMessage(t(messageKey));
+    },
+    [t]
+  );
 
   // Pagination handlers
   const updateDisplayedStations = useCallback(
@@ -126,118 +132,172 @@ export const FetchProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Add dislike handler
+  // Update handleDislike function to ensure proper ID handling
   const handleDislike = useCallback((station) => {
-    if (!station) return;
+    if (!station || !station.stationuuid) return; // Changed from id to stationuuid
 
     setDislikedStations((prev) => {
-      const isDisliked = prev.some((s) => s.id === station.id);
-      const newDislikes = isDisliked
-        ? prev.filter((s) => s.id !== station.id)
-        : [...prev, station];
+      // Check if station is already disliked
+      const isDisliked = prev.some(
+        (s) => s.stationuuid === station.stationuuid
+      ); // Changed from id to stationuuid
 
-      localStorage.setItem("dislikedStations", JSON.stringify(newDislikes));
-      console.log("Updated disliked stations:", newDislikes);
-      return newDislikes;
+      if (isDisliked) {
+        // Remove from disliked stations
+        const newDislikes = prev.filter(
+          (s) => s.stationuuid !== station.stationuuid
+        ); // Changed from id to stationuuid
+        console.log(
+          `Removed station ${station.name} (UUID: ${station.stationuuid}) from dislikes`
+        );
+        localStorage.setItem("dislikedStations", JSON.stringify(newDislikes));
+        return newDislikes;
+      } else {
+        // Add to disliked stations
+        const newDislikes = [
+          ...prev,
+          { stationuuid: station.stationuuid, name: station.name },
+        ]; // Changed from id to stationuuid
+        console.log(
+          `Added station ${station.name} (UUID: ${station.stationuuid}) to dislikes`
+        );
+        localStorage.setItem("dislikedStations", JSON.stringify(newDislikes));
+        return newDislikes;
+      }
     });
   }, []);
 
-  // Add isDisliked check
+  // Update isDisliked function for strict ID comparison
   const isDisliked = useCallback(
     (stationId) => {
+      if (!stationId) return false;
       return dislikedStations.some((station) => station.id === stationId);
     },
     [dislikedStations]
   );
 
-  // API setup and station fetching
+  // Update API_SERVERS to use only working HTTPS endpoints
   const API_SERVERS = [
-    "https://de2.api.radio-browser.info",
-    // "https://at1.api.radio-browser.info",
-    // "https://nl1.api.radio-browser.info",
-    // "https://fr1.api.radio-browser.info",
-    // "https://de1.api.radio-browser.info",
-    // "https://de3.api.radio-browser.info",
-    // "https://uk1.api.radio-browser.info",
-    // "https://uk2.api.radio-browser.info",
-    // "https://us1.api.radio-browser.info",
-    // "https://us2.api.radio-browser.info",
-    // "https://fi1.api.radio-browser.info",
-    // "https://pl1.api.radio-browser.info",
-    // "https://ru1.api.radio-browser.info",
-    // "https://ca1.api.radio-browser.info",
-    // "https://au1.api.radio-browser.info",
-    // "https://br1.api.radio-browser.info",
-    // "https://za1.api.radio-browser.info",
-    // "https://in1.api.radio-browser.info",
-    // "https://jp1.api.radio-browser.info",
-    // "https://sg1.api.radio-browser.info",
+    "https://de2.api.radio-browser.info", // Keep this as it's working
+    "https://nl1.api.radio-browser.info", // Change to HTTPS
   ];
-  const API_BASE_URL = API_SERVERS[0];
 
+  // Update fetchWithRetry function
+  const fetchWithRetry = async (endpoint, params = {}) => {
+    for (const server of API_SERVERS) {
+      try {
+        const url = new URL(`${server}/json/${endpoint}`);
+        Object.entries({
+          ...params,
+          hidebroken: true,
+        }).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            url.searchParams.append(key, value.toString());
+          }
+        });
+
+        console.log(`Attempting fetch to: ${url.toString()}`);
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "User-Agent": "RadioBrowser/1.0",
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Basic validation only - let setupApi handle detailed filtering
+        if (!Array.isArray(data)) {
+          console.warn(`Invalid response format from ${server}`);
+          continue;
+        }
+
+        return data; // Return raw data for further processing
+      } catch (error) {
+        console.error(`Fetch failed for ${server}:`, error);
+        continue;
+      }
+    }
+    throw new Error("All servers failed to respond with valid data");
+  };
+
+  // Update setupApi function with better dislike handling
   const setupApi = useCallback(
     async (genre) => {
       try {
         setIsLoading(true);
 
-        // Try each server until one works
-        for (const server of API_SERVERS) {
-          try {
-            console.log(`Trying to fetch from: ${server}`);
-            const api = new RadioBrowserApi(server, fetch.bind(window), {
-              method: "POST",
-              headers: {
-                "User-Agent": "SoundPulse Radio/1.0",
-                "Content-Type": "application/json",
-              },
-              mode: "no-cors",
-            });
+        const searchParams = {
+          limit,
+          hidebroken: true,
+          ...(lang && { language: lang }),
+          ...(country && { country }),
+          ...(stationGenre && stationGenre !== "all" && { tag: stationGenre }),
+          ...(codec && { codec }),
+          ...(bitrate > 0 && { bitrate }),
+        };
 
-            const searchParams = {
-              limit,
-              hidebroken: true,
-              ...(lang && { language: lang }),
-              ...(country && { country }),
-              ...(stationGenre &&
-                stationGenre !== "all" && { tag: stationGenre }),
-              ...(codec && { codec }),
-              ...(bitrate > 0 && { bitrate }),
-            };
+        const stations = await fetchWithRetry("stations/search", searchParams);
 
-            console.log("Fetching stations with params:", searchParams);
-            const rawStations = await api.searchStations(searchParams);
-            console.log(
-              `Successfully fetched ${rawStations.length} stations from ${server}`
-            );
+        // Debug logs
+        console.log("First station example:", {
+          id: stations[0]?.stationuuid, // Changed from id to stationuuid
+          name: stations[0]?.name,
+          url: stations[0]?.url,
+        });
 
-            // Keep full stations array in memory
-            let allStations = rawStations;
+        console.log(
+          "Disliked stations IDs:",
+          dislikedStations.map((s) => s.stationuuid) // Changed from id to stationuuid
+        );
 
-            // Filter unique stations and exclude disliked ones
-            const seenNames = new Set();
-            const uniqueStations = allStations.filter((station) => {
-              if (!station.url || !station.name || !station.urlResolved)
-                return false;
-              const duplicate = seenNames.has(station.name);
-              const isDislikedStation = dislikedStations.some(
-                (s) => s.id === station.id
-              );
-              seenNames.add(station.name);
-              return !duplicate && !isDislikedStation;
-            });
-
-            console.log("Filtered stations:", uniqueStations.length);
-            setStations(uniqueStations);
-            updateDisplayedStations(uniqueStations, 0);
-            return uniqueStations;
-          } catch (error) {
-            console.log(`Failed to fetch from ${server}, trying next...`);
-            continue;
+        const validStations = stations.filter((station) => {
+          // Basic validation
+          if (
+            !station ||
+            !station.url ||
+            !station.name ||
+            !station.stationuuid
+          ) {
+            // Changed from id to stationuuid
+            return false;
           }
+
+          // Convert IDs to strings for comparison
+          const stationId = String(station.stationuuid); // Changed from id to stationuuid
+          const isDislikedStation = dislikedStations.some(
+            (d) => String(d.stationuuid) === stationId // Changed from id to stationuuid
+          );
+
+          if (isDislikedStation) {
+            console.log(
+              `Station ${station.name} (UUID: ${stationId}) is disliked`
+            );
+          }
+
+          return !isDislikedStation;
+        });
+
+        console.log({
+          totalStations: stations.length,
+          validStations: validStations.length,
+          dislikedIds: dislikedStations.map((s) => s.stationuuid), // Changed from id to stationuuid
+        });
+
+        if (validStations.length === 0) {
+          setErrorMessage(t("No stations available"));
+          return [];
         }
 
-        // If all servers fail
-        throw new Error("All API servers failed");
+        setStations(validStations);
+        updateDisplayedStations(validStations, 0);
+        return validStations;
       } catch (error) {
         console.error("Failed to fetch stations:", error);
         setErrorMessage(t("Failed to fetch stations"));
@@ -255,8 +315,30 @@ export const FetchProvider = ({ children }) => {
       bitrate,
       dislikedStations,
       updateDisplayedStations,
+      t,
     ]
   );
+
+  const retryFetch = async (url, options, maxRetries = 3) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const response = await fetch(url, options);
+        if (response.ok) return response;
+
+        console.warn(
+          `Attempt ${i + 1}/${maxRetries} failed with status ${response.status}`
+        );
+      } catch (error) {
+        console.warn(`Attempt ${i + 1}/${maxRetries} failed:`, error.message);
+        if (i === maxRetries - 1) throw error;
+      }
+      // Add exponential backoff
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.pow(2, i) * 1000)
+      );
+    }
+    throw new Error(`Failed after ${maxRetries} retries`);
+  };
 
   const nextPage = useCallback(() => {
     if (hasMore) updateDisplayedStations(stations, currentPage + 1);
@@ -522,42 +604,13 @@ export const FetchProvider = ({ children }) => {
     itemsPerPage,
   ]);
 
-  // Update fetchTopStations with CORS and multiple servers
   const fetchTopStations = async () => {
     try {
       setIsLoading(true);
-
-      for (const server of API_SERVERS) {
-        try {
-          console.log(`Trying to fetch top stations from: ${server}`);
-          const response = await fetch(`${server}/json/stations/topvote/5`, {
-            method: "POST",
-            headers: {
-              "User-Agent": "SoundPulse Radio/1.0",
-              "Content-Type": "application/json",
-            },
-            mode: "no-cors",
-          });
-
-          if (!response.ok) {
-            console.log(`Failed to fetch from ${server}, trying next...`);
-            continue;
-          }
-
-          const data = await response.json();
-          console.log(`Successfully fetched ${data.length} top stations`);
-          setStations(data);
-          updateDisplayedStations(data, 0);
-          setCurrentPage(0);
-          return;
-        } catch (error) {
-          console.log(`Error with ${server}:`, error);
-          continue;
-        }
-      }
-
-      // If all servers fail
-      throw new Error("All servers failed to fetch top stations");
+      const data = await fetchWithRetry("stations/topvote/5");
+      setStations(data);
+      updateDisplayedStations(data, 0);
+      setCurrentPage(0);
     } catch (error) {
       console.error("Error fetching top stations:", error);
       setErrorMessage(t("Failed to fetch top stations"));
@@ -656,7 +709,6 @@ export const FetchProvider = ({ children }) => {
     }
   }, [currentStation, stations, handleStationClick, setErrorMessage, t]);
 
-  // Update searchStationsByName function pagination part
   const searchStationsByName = useCallback(
     async (searchValue) => {
       if (!searchValue.trim()) {
@@ -666,67 +718,24 @@ export const FetchProvider = ({ children }) => {
 
       try {
         setIsLoading(true);
+        const results = await fetchWithRetry("stations/search", {
+          name: searchValue,
+          limit: 100,
+        });
 
-        for (const server of API_SERVERS) {
-          try {
-            console.log(`Searching on ${server} for: "${searchValue}"`);
+        const filteredResults = results.filter(
+          (station) => station.name && (station.url || station.urlResolved)
+        );
 
-            const response = await fetch(
-              `${server}/json/stations/search?name=${encodeURIComponent(
-                searchValue
-              )}&limit=100`,
-              {
-                method: "POST",
-                headers: {
-                  "User-Agent": "RadioBrowserApp/1.0",
-                  "Content-Type": "application/json",
-                },
-                mode: "no-cors",
-              }
-            );
-
-            if (!response.ok) {
-              console.log(`Search failed on ${server}, trying next...`);
-              continue;
-            }
-
-            const results = await response.json();
-            console.log(`Raw results from ${server}:`, results.length);
-
-            // Only filter for valid URLs, no dislike check
-            const filteredResults = results.filter((station) => {
-              if (!station.name) {
-                console.log("Rejected - no name:", station);
-                return false;
-              }
-
-              const hasValidUrl = Boolean(station.url || station.urlResolved);
-              if (!hasValidUrl) {
-                console.log("Rejected - no valid URL:", station.name);
-                return false;
-              }
-
-              return true;
-            });
-
-            console.log(`Filtered results: ${filteredResults.length} stations`);
-
-            if (filteredResults.length > 0) {
-              setStations(filteredResults);
-              setSearchResults(filteredResults);
-              setDisplayMode("search");
-              setCurrentPage(0);
-              // Don't use updateDisplayedStations here, let getStationsToDisplay handle pagination
-              setHasMore(filteredResults.length > itemsPerPage);
-              return;
-            }
-          } catch (error) {
-            console.log(`Error with ${server}:`, error);
-            continue;
-          }
+        if (filteredResults.length > 0) {
+          setStations(filteredResults);
+          setSearchResults(filteredResults);
+          setDisplayMode("search");
+          setCurrentPage(0);
+          setHasMore(filteredResults.length > itemsPerPage);
+        } else {
+          throw new Error("No stations found");
         }
-
-        throw new Error("No stations found");
       } catch (error) {
         console.error("Search error:", error);
         setErrorMessage(t("No stations found matching your search"));
@@ -736,7 +745,7 @@ export const FetchProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [updateDisplayedStations, t, itemsPerPage]
+    [itemsPerPage, t]
   );
 
   // Update nextSearchPage function
@@ -833,7 +842,8 @@ export const FetchProvider = ({ children }) => {
                   "User-Agent": "RadioBrowserApp/1.0",
                   "Content-Type": "application/json",
                 },
-                mode: "no-cors",
+                mode: "cors",
+                redirect: "follow",
               }
             );
 
