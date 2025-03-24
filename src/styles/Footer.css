@@ -4,7 +4,7 @@
   align-items: center;
   padding: 1rem 4rem;
   background-color: rgba(104, 177, 150, 0.5);
-  
+  width: 100;
   flex-wrap: nowrap;
 }
 
