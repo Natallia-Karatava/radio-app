@@ -20,6 +20,9 @@ import jazz from "/carousal/jazz.webp";
 import pop from "/carousal/pop.webp";
 import retro from "/carousal/retro.webp";
 import rock from "/carousal/rock.webp";
+import ska from "/carousal/ska.webp";
+import blues from "/carousal/blues.webp";
+import reggae from "/carousal/reggae.webp";
 
 const IMGS = [
   all,
@@ -32,6 +35,9 @@ const IMGS = [
   pop,
   retro,
   rock,
+  ska,
+  blues,
+  reggae,
 ];
 
 const getDragFactor = () => {
