@@ -9,6 +9,9 @@ import rock from "/carousal/rock.webp";
 import disco from "/carousal/disco.webp";
 import house from "/carousal/house.webp";
 import retro from "/carousal/retro.webp";
+import ska from "/carousal/ska.webp";
+import blues from "/carousal/blues.webp";
+import reggae from "/carousal/reggae.webp";
 import favSmall from "../images/logos/favicon_32x32.png";
 import favLarge from "../images/logos/favicon_64x64.png";
 import favMd from "../images/logos/favicon_48x48.png";
@@ -28,6 +31,9 @@ export const appImages = {
   disco: disco,
   house: house,
   retro: retro,
+  ska: ska,
+  blues: blues,
+  reggae: reggae,
   favSmall: favSmall,
   favLarge: favLarge,
   favMd: favMd,
