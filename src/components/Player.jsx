@@ -40,7 +40,7 @@ import {
   WorkplaceIcon,
 } from "react-share";
 import React, { useContext } from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FaPlay,
@@ -97,9 +97,22 @@ const Player = ({ audio }) => {
   const size = 32;
   const [isShare, setIsShare] = useState(false);
   const containerRef = useRef(null);
+  const shareButtonRef = useRef(null); // Add new ref for share button
 
+  const handleShare = useCallback((e) => {
+    e.stopPropagation();
+    setIsShare((prev) => !prev);
+  }, []);
+
+  // Update useEffect with improved event handling
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Ignore clicks on the share button itself
+      if (shareButtonRef.current?.contains(event.target)) {
+        return;
+      }
+
+      // Close dropdown if click is outside container
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target)
@@ -115,23 +128,17 @@ const Player = ({ audio }) => {
     };
 
     if (isShare) {
+      // Add listeners when dropdown is open
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleEscKey);
+
+      return () => {
+        // Clean up listeners when dropdown closes
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleEscKey);
+      };
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscKey);
-    };
   }, [isShare]);
-
-  const handleShare = () => {
-    setIsShare(!isShare);
-    // console.log("Share state:", !isShare);
-  };
-
-  // Add isChanging state
-  const [isChanging, setIsChanging] = useState(false);
 
   // Add lastSuccessfulIndex to track position even when playback fails
   const [lastSuccessfulIndex, setLastSuccessfulIndex] = useState(-1);
@@ -294,6 +301,7 @@ const Player = ({ audio }) => {
                   className={`action-button share-button ${
                     isShare ? "active" : ""
                   }`}
+                  ref={shareButtonRef}
                 >
                   <FaShare size={24} />
                 </button>
