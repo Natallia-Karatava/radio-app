@@ -53,6 +53,7 @@ import {
 } from "react-icons/fa";
 import VolumeController from "./VolumeController";
 import { FetchContext } from "../contexts/FetchContext";
+import { UserContext } from "../contexts/UserContext";
 import "../styles/Player.css";
 import player from "/player.webp";
 
@@ -73,7 +74,7 @@ const Player = ({ audio }) => {
     handleDislike, // Add this
     like, // Add this if not already imported
   } = useContext(FetchContext);
-
+  const { isAuthenticated } = useContext(UserContext);
   //likeComponent
   const handleLike = () => {
     if (currentStation) {
@@ -291,6 +292,7 @@ const Player = ({ audio }) => {
                 <button
                   className="action-button like-button"
                   onClick={handleLike}
+                  disabled={!isAuthenticated}
                 >
                   <FaHeart size={24} />
                 </button>
@@ -299,6 +301,7 @@ const Player = ({ audio }) => {
                     isDisliked(currentStation?.stationuuid) ? "active" : ""
                   }`}
                   onClick={onDislike}
+                  disabled={!isAuthenticated}
                 >
                   <FaThumbsDown size={24} />
                 </button>

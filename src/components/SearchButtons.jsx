@@ -3,6 +3,7 @@ import { FaHeart, FaRandom, FaFilter, FaSearch, FaStar } from "react-icons/fa";
 import "../styles/SearchButtons.css";
 import { useTranslation } from "react-i18next";
 import { FetchContext } from "../contexts/FetchContext";
+import { UserContext } from "../contexts/UserContext";
 
 const SearchButtons = () => {
   const { t } = useTranslation();
@@ -15,6 +16,7 @@ const SearchButtons = () => {
     searchStationsByName,
     searchStationsByFilters, // Add this line
   } = useContext(FetchContext);
+  const { isAuthenticated } = useContext(UserContext);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -125,6 +127,7 @@ const SearchButtons = () => {
         <button
           className={`button ${displayMode === "favorites" ? "active" : ""}`}
           onClick={() => changeDisplayMode("favorites")}
+          disabled={!isAuthenticated}
         >
           <FaHeart size={24} /> {t("My favorites")}
         </button>

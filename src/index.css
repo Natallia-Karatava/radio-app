@@ -295,3 +295,6 @@ button:focus-visible {
   border: none;
   box-shadow: none;
 }
+button:disabled {
+  cursor: not-allowed;
+}

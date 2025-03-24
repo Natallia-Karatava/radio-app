@@ -89,7 +89,7 @@ export const FetchProvider = ({ children }) => {
 
     // Check if station is already in favorites
     const isAlreadyFavorite = favorites.some(
-      (fav) => fav.id === currentStation.id
+      (fav) => fav.stationuuid === currentStation.stationuuid
     );
 
     if (isAlreadyFavorite) {
@@ -120,7 +120,9 @@ export const FetchProvider = ({ children }) => {
 
   const deleteFavorite = useCallback((stationId) => {
     setFavorites((prevFavorites) => {
-      const newFavorites = prevFavorites.filter((fav) => fav.id !== stationId);
+      const newFavorites = prevFavorites.filter(
+        (fav) => fav.stationuuid !== stationId
+      );
       localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
       return newFavorites;
     });
@@ -171,7 +173,9 @@ export const FetchProvider = ({ children }) => {
   const isDisliked = useCallback(
     (stationId) => {
       if (!stationId) return false;
-      return dislikedStations.some((station) => station.id === stationId);
+      return dislikedStations.some(
+        (station) => station.stationuuid === stationId
+      );
     },
     [dislikedStations]
   );
@@ -364,7 +368,7 @@ export const FetchProvider = ({ children }) => {
       setErrorMessage("");
 
       // Only check if station is disliked, but don't show message
-      if (isDisliked(station.id)) {
+      if (isDisliked(station.stationuuid)) {
         setIsPlaying(false);
         return;
       }
@@ -557,7 +561,8 @@ export const FetchProvider = ({ children }) => {
     if (stations.length > 0) {
       // Filter out disliked stations from current stations
       const filteredStations = stations.filter(
-        (station) => !dislikedStations.some((s) => s.id === station.id)
+        (station) =>
+          !dislikedStations.some((s) => s.stationuuid === station.stationuuid)
       );
       setStations(filteredStations);
       updateDisplayedStations(filteredStations, 0);
@@ -683,7 +688,7 @@ export const FetchProvider = ({ children }) => {
 
     try {
       const currentIndex = stations.findIndex(
-        (station) => station.id === currentStation.id
+        (station) => station.stationuuid === currentStation.stationuuid
       );
       const nextIndex = (currentIndex + 1) % stations.length;
       await handleStationClick(stations[nextIndex]);
@@ -698,7 +703,7 @@ export const FetchProvider = ({ children }) => {
 
     try {
       const currentIndex = stations.findIndex(
-        (station) => station.id === currentStation.id
+        (station) => station.stationuuid === currentStation.stationuuid
       );
       const prevIndex =
         currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
