@@ -152,7 +152,9 @@ const Player = ({ audio }) => {
       }
 
       let currentIndex = currentStation
-        ? stations.findIndex((s) => s.id === currentStation.id)
+        ? stations.findIndex(
+            (s) => s.stationuuid === currentStation.stationuuid
+          )
         : lastSuccessfulIndex;
 
       // If index is invalid, start from beginning
@@ -190,7 +192,9 @@ const Player = ({ audio }) => {
       }
 
       let currentIndex = currentStation
-        ? stations.findIndex((s) => s.id === currentStation.id)
+        ? stations.findIndex(
+            (s) => s.stationuuid === currentStation.stationuuid
+          )
         : lastSuccessfulIndex;
 
       // If index is invalid, start from end
@@ -224,7 +228,9 @@ const Player = ({ audio }) => {
   // Update useEffect to initialize lastSuccessfulIndex when component mounts
   useEffect(() => {
     if (currentStation && stations?.length) {
-      const index = stations.findIndex((s) => s.id === currentStation.id);
+      const index = stations.findIndex(
+        (s) => s.stationuuid === currentStation.stationuuid
+      );
       if (index !== -1) {
         setLastSuccessfulIndex(index);
       }
@@ -290,7 +296,7 @@ const Player = ({ audio }) => {
                 </button>
                 <button
                   className={`action-button dislike-button ${
-                    isDisliked(currentStation?.id) ? "active" : ""
+                    isDisliked(currentStation?.stationuuid) ? "active" : ""
                   }`}
                   onClick={onDislike}
                 >
@@ -393,7 +399,9 @@ const Player = ({ audio }) => {
           className="play-button"
           onClick={handlePlayPause}
           disabled={
-            !currentStation || isLoading || isDisliked(currentStation?.id)
+            !currentStation ||
+            isLoading ||
+            isDisliked(currentStation?.stationuuid)
           }
         >
           {isPlaying ? (
