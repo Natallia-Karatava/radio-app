@@ -103,13 +103,19 @@ export const FetchProvider = ({ children }) => {
   }, [favorites]);
 
   useEffect(() => {
+    const savedFavorites = localStorage.getItem("favouriteStations");
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+  }, []);
+  useEffect(() => {
     console.log("Current favorites:", favorites);
   }, [favorites]);
 
   const deleteFavorite = useCallback((stationId) => {
     setFavorites((prevFavorites) => {
       const newFavorites = prevFavorites.filter((fav) => fav.id !== stationId);
-      localStorage.setItem("favorites", JSON.stringify(newFavorites));
+      localStorage.setItem("favouriteStations", JSON.stringify(newFavorites));
       return newFavorites;
     });
   }, []);
@@ -146,26 +152,26 @@ export const FetchProvider = ({ children }) => {
 
   // API setup and station fetching
   const API_SERVERS = [
-    "https://de1.api.radio-browser.info",
-    "https://at1.api.radio-browser.info",
-    "https://nl1.api.radio-browser.info",
-    "https://fr1.api.radio-browser.info",
     "https://de2.api.radio-browser.info",
-    "https://de3.api.radio-browser.info",
-    "https://uk1.api.radio-browser.info",
-    "https://uk2.api.radio-browser.info",
-    "https://us1.api.radio-browser.info",
-    "https://us2.api.radio-browser.info",
-    "https://fi1.api.radio-browser.info",
-    "https://pl1.api.radio-browser.info",
-    "https://ru1.api.radio-browser.info",
-    "https://ca1.api.radio-browser.info",
-    "https://au1.api.radio-browser.info",
-    "https://br1.api.radio-browser.info",
-    "https://za1.api.radio-browser.info",
-    "https://in1.api.radio-browser.info",
-    "https://jp1.api.radio-browser.info",
-    "https://sg1.api.radio-browser.info",
+    // "https://at1.api.radio-browser.info",
+    // "https://nl1.api.radio-browser.info",
+    // "https://fr1.api.radio-browser.info",
+    // "https://de1.api.radio-browser.info",
+    // "https://de3.api.radio-browser.info",
+    // "https://uk1.api.radio-browser.info",
+    // "https://uk2.api.radio-browser.info",
+    // "https://us1.api.radio-browser.info",
+    // "https://us2.api.radio-browser.info",
+    // "https://fi1.api.radio-browser.info",
+    // "https://pl1.api.radio-browser.info",
+    // "https://ru1.api.radio-browser.info",
+    // "https://ca1.api.radio-browser.info",
+    // "https://au1.api.radio-browser.info",
+    // "https://br1.api.radio-browser.info",
+    // "https://za1.api.radio-browser.info",
+    // "https://in1.api.radio-browser.info",
+    // "https://jp1.api.radio-browser.info",
+    // "https://sg1.api.radio-browser.info",
   ];
   const API_BASE_URL = API_SERVERS[0];
 
@@ -179,11 +185,12 @@ export const FetchProvider = ({ children }) => {
           try {
             console.log(`Trying to fetch from: ${server}`);
             const api = new RadioBrowserApi(server, fetch.bind(window), {
+              method: "POST",
               headers: {
                 "User-Agent": "SoundPulse Radio/1.0",
                 "Content-Type": "application/json",
               },
-              mode: "cors",
+              mode: "no-cors",
             });
 
             const searchParams = {
@@ -524,11 +531,12 @@ export const FetchProvider = ({ children }) => {
         try {
           console.log(`Trying to fetch top stations from: ${server}`);
           const response = await fetch(`${server}/json/stations/topvote/5`, {
+            method: "POST",
             headers: {
               "User-Agent": "SoundPulse Radio/1.0",
               "Content-Type": "application/json",
             },
-            mode: "cors",
+            mode: "no-cors",
           });
 
           if (!response.ok) {
@@ -668,11 +676,12 @@ export const FetchProvider = ({ children }) => {
                 searchValue
               )}&limit=100`,
               {
+                method: "POST",
                 headers: {
                   "User-Agent": "RadioBrowserApp/1.0",
                   "Content-Type": "application/json",
                 },
-                mode: "cors",
+                mode: "no-cors",
               }
             );
 
@@ -758,19 +767,21 @@ export const FetchProvider = ({ children }) => {
         setIsLoading(true);
         setErrorMessage("");
 
+        // Trim and validate all filter values
         const trimmedFilters = Object.entries(filters).reduce(
           (acc, [key, value]) => {
             if (typeof value === "string") {
               const trimmed = value.trim();
               if (trimmed) acc[key] = trimmed;
             } else {
-              acc[key] = value;
+              acc[key] = value; // Keep non-string values (like arrays) as is
             }
             return acc;
           },
           {}
         );
 
+        // Use imported countries data for mapping
         let countrycode = "";
         if (trimmedFilters.country) {
           const countryKey = Object.keys(countries).find(
@@ -780,6 +791,13 @@ export const FetchProvider = ({ children }) => {
             ? countries[countryKey]
             : trimmedFilters.country.toUpperCase();
         }
+
+        console.log(
+          "Using country code:",
+          countrycode,
+          "for country:",
+          trimmedFilters.country
+        );
 
         for (const server of API_SERVERS) {
           try {
@@ -802,43 +820,69 @@ export const FetchProvider = ({ children }) => {
               }),
             });
 
+            console.log(
+              `Searching on ${server} with params:`,
+              params.toString()
+            );
+
             const response = await fetch(
               `${server}/json/stations/search?${params}`,
               {
+                method: "POST",
                 headers: {
                   "User-Agent": "RadioBrowserApp/1.0",
                   "Content-Type": "application/json",
                 },
-                mode: "cors",
+                mode: "no-cors",
               }
             );
 
-            if (!response.ok) continue;
+            if (!response.ok) {
+              console.log(`Server ${server} returned ${response.status}`);
+              continue;
+            }
 
             const results = await response.json();
+            console.log(`Found ${results.length} stations on ${server}`);
+
+            // Filter valid stations
             const filteredResults = results.filter(
               (station) => station.name && (station.url || station.urlResolved)
             );
 
+            console.log(
+              `After filtering: ${filteredResults.length} valid stations`
+            );
+
             if (filteredResults.length > 0) {
+              // Update all necessary states
               setStations(filteredResults);
               setSearchResults(filteredResults);
               setDisplayMode("search");
               setCurrentPage(0);
+
+              // Calculate initial pagination
               const initialResults = filteredResults.slice(0, itemsPerPage);
               setDisplayedStations(initialResults);
               setHasMore(filteredResults.length > itemsPerPage);
+
+              console.log("Search pagination initialized:", {
+                total: filteredResults.length,
+                showing: initialResults.length,
+                hasMore: filteredResults.length > itemsPerPage,
+              });
+
               return;
             }
           } catch (error) {
-            console.error(`API error: ${error.message}`);
+            console.log(`Error with ${server}:`, error.message);
             continue;
           }
         }
 
         throw new Error("No stations found");
       } catch (error) {
-        console.error("Search error:", error.message);
+        console.error("Filter search error:", error.message);
         setErrorMessage(t("No stations found matching your filters"));
         setSearchResults([]);
         setDisplayedStations([]);
