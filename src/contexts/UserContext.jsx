@@ -20,16 +20,9 @@ export const UserProvider = ({ children }) => {
 
   const registerUser = ({ username, email, password }) => {
     const newUser = { username, email, password };
-
-    // Извлекаем текущих зарегистрированных пользователей или создаем пустой массив
     const users = JSON.parse(localStorage.getItem("users")) || [];
-
-    // Добавляем нового пользователя в массив
     users.push(newUser);
-
-    // Сохраняем обновленный массив пользователей в localStorage
     localStorage.setItem("users", JSON.stringify(users));
-
     setUser(newUser);
     localStorage.setItem("activeUser", JSON.stringify(newUser));
     setIsAuthenticated(true);
@@ -37,7 +30,6 @@ export const UserProvider = ({ children }) => {
 
   const loginUser = async (username, password) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
     const users = JSON.parse(localStorage.getItem("users")) || [];
     const savedUser = users.find(
       (user) => user.username === username && user.password === password
