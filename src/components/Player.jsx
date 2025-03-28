@@ -1,4 +1,3 @@
-// Player.jsx
 import {
   EmailShareButton,
   FacebookShareButton,
