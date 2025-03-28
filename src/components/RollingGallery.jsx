@@ -9,7 +9,6 @@ import { useContext } from "react";
 import { FetchContext } from "../contexts/FetchContext";
 import "../styles/RollingGallery.css";
 
-// Image imports
 import all from "/carousal/all.webp";
 import classical from "/carousal/classical.webp";
 import country from "/carousal/country.webp";
@@ -97,7 +96,7 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
 
   const faceCount = repeatedImages.length;
   const faceWidth = SINGLE_IMAGE_WIDTH;
-  const spacing = MIN_SPACING; // Use fixed spacing
+  const spacing = MIN_SPACING;
   const radius = baseWidth / 2;
   const dragFactor = getDragFactor();
 
@@ -112,7 +111,7 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
   // Event handlers
   const handleGenreSelect = (url) => {
     const genre = url.split("/").pop().split(".")[0];
-    changeDisplayMode("genre", genre); // Change both mode and genre
+    changeDisplayMode("genre", genre);
   };
 
   const handleDrag = (_, info) =>

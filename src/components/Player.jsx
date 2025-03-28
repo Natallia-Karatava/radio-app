@@ -219,17 +219,6 @@ const Player = ({ audio }) => {
     }
   }, [currentStation, stations]);
 
-  const formatTags = (tags) => {
-    if (Array.isArray(tags)) return tags.join(", ");
-    if (typeof tags === "string") {
-      return tags
-        .split(/(?=[A-Z])/)
-        .join(", ")
-        .toLowerCase();
-    }
-    return tags;
-  };
-
   const truncateStationName = (name) => {
     if (name.length > 28) {
       return name.substring(0, 28) + "...";
