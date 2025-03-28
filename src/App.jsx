@@ -22,8 +22,8 @@ const App = () => {
         <Navigation />
         <Header />
         <RollingGallery autoplay={true} pauseOnHover={true} />
-        <Player audio={audioRef.current} /> {/* Neue Player-Komponente */}
-        <SearchButtons /> {/* Neue Komponente */}
+        <Player audio={audioRef.current} />
+        <SearchButtons />
         <StationsList />
         <Footer />
       </UserProvider>
