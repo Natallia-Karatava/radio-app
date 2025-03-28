@@ -67,14 +67,12 @@ const Player = ({ audio }) => {
     stations,
     nextStation,
     previousStation,
-    setCurrentStation,
     isDisliked,
     handleStationClick,
-    handleDislike, // Add this
-    like, // Add this if not already imported
+    handleDislike,
+    like,
   } = useContext(FetchContext);
   const { isAuthenticated } = useContext(UserContext);
-  //likeComponent
   const handleLike = () => {
     if (currentStation) {
       like();
@@ -87,7 +85,6 @@ const Player = ({ audio }) => {
       handleDislike(currentStation);
       console.log("Disliking current station:", currentStation);
 
-      // If currently playing station is disliked, try playing next station
       if (isPlaying) {
         handleNextStation();
       }
@@ -97,22 +94,18 @@ const Player = ({ audio }) => {
   const size = 32;
   const [isShare, setIsShare] = useState(false);
   const containerRef = useRef(null);
-  const shareButtonRef = useRef(null); // Add new ref for share button
+  const shareButtonRef = useRef(null);
 
   const handleShare = useCallback((e) => {
     e.stopPropagation();
     setIsShare((prev) => !prev);
   }, []);
 
-  // Update useEffect with improved event handling
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Ignore clicks on the share button itself
       if (shareButtonRef.current?.contains(event.target)) {
         return;
       }
-
-      // Close dropdown if click is outside container
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target)
@@ -128,22 +121,18 @@ const Player = ({ audio }) => {
     };
 
     if (isShare) {
-      // Add listeners when dropdown is open
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleEscKey);
 
       return () => {
-        // Clean up listeners when dropdown closes
         document.removeEventListener("mousedown", handleClickOutside);
         document.removeEventListener("keydown", handleEscKey);
       };
     }
   }, [isShare]);
 
-  // Add lastSuccessfulIndex to track position even when playback fails
   const [lastSuccessfulIndex, setLastSuccessfulIndex] = useState(-1);
 
-  // Update navigation handlers
   const handleNextStation = async () => {
     try {
       if (!stations?.length) {
@@ -157,18 +146,15 @@ const Player = ({ audio }) => {
           )
         : lastSuccessfulIndex;
 
-      // If index is invalid, start from beginning
       if (currentIndex < 0 || currentIndex >= stations.length) {
         currentIndex = -1;
       }
 
       console.log("Next station clicked, current index:", currentIndex);
 
-      // Calculate next index with bounds check
       const targetIndex = (currentIndex + 1) % stations.length;
       console.log(`Moving to station index: ${targetIndex}`);
 
-      // Try to play the station
       try {
         await handleStationClick(stations[targetIndex]);
         setLastSuccessfulIndex(targetIndex);
@@ -197,19 +183,16 @@ const Player = ({ audio }) => {
           )
         : lastSuccessfulIndex;
 
-      // If index is invalid, start from end
       if (currentIndex < 0 || currentIndex >= stations.length) {
         currentIndex = stations.length;
       }
 
       console.log("Previous station clicked, current index:", currentIndex);
 
-      // Calculate previous index with bounds check
       const targetIndex =
         currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
       console.log(`Moving to station index: ${targetIndex}`);
 
-      // Try to play the station
       try {
         await handleStationClick(stations[targetIndex]);
         setLastSuccessfulIndex(targetIndex);
@@ -225,7 +208,6 @@ const Player = ({ audio }) => {
     }
   };
 
-  // Update useEffect to initialize lastSuccessfulIndex when component mounts
   useEffect(() => {
     if (currentStation && stations?.length) {
       const index = stations.findIndex(
@@ -237,7 +219,6 @@ const Player = ({ audio }) => {
     }
   }, [currentStation, stations]);
 
-  // Hilfsfunktion zum Formatieren der Tags
   const formatTags = (tags) => {
     if (Array.isArray(tags)) return tags.join(", ");
     if (typeof tags === "string") {
@@ -249,7 +230,6 @@ const Player = ({ audio }) => {
     return tags;
   };
 
-  // Hilfsfunktion zum Kürzen des Stationsnamens
   const truncateStationName = (name) => {
     if (name.length > 28) {
       return name.substring(0, 28) + "...";
@@ -262,7 +242,6 @@ const Player = ({ audio }) => {
       <div className="player-container ">
         <img src={player} alt="Player" className="player-background" />
 
-        {/* Now Playing Info Box */}
         <div className="now-playing-info">
           <div className="station-content">
             <div className="station-text">
@@ -383,16 +362,14 @@ const Player = ({ audio }) => {
           </div>
         </div>
 
-        {/* Volume Controller */}
         <div className="volume-controller-position">
           <VolumeController audio={audio} />
         </div>
 
-        {/* Play Controls */}
         <button
           className="previous-button"
           onClick={handlePreviousStation}
-          disabled={!stations?.length} // Remove isChanging check
+          disabled={!stations?.length}
         >
           <FaStepBackward size={24} />
         </button>
@@ -416,7 +393,7 @@ const Player = ({ audio }) => {
         <button
           className="next-button"
           onClick={handleNextStation}
-          disabled={!stations?.length} // Remove isChanging check
+          disabled={!stations?.length}
         >
           <FaStepForward size={24} />
         </button>
