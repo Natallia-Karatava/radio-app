@@ -3,8 +3,6 @@
   justify-content: flex-end;
   align-items: center;
   padding: 0.5rem 4rem;
-  /* background: var(--nav); */
-  
   height: 60px;
   position: relative;
 }
@@ -101,8 +99,6 @@
   white-space: nowrap;
 }
 
-
-
 /* Desktop */
 .icon svg,
 .icon img {
@@ -123,9 +119,8 @@
     justify-content: flex-end;
     align-items: center;
     padding: 0rem 2rem;
-    
+
     height: 50px;
     position: relative;
-    
   }
 }

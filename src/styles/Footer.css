@@ -55,7 +55,7 @@
   height: 24px;
 }
 
-/* ===== Mobile layout ===== */
+/*  Mobile layout  */
 @media (max-width: 768px) {
   .footer {
     flex-direction: column;
@@ -103,6 +103,5 @@ svg {
 @media (prefers-color-scheme: dark) {
   svg:hover {
     transform: scale(1.2);
-  
   }
 }
