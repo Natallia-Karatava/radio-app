@@ -65,7 +65,7 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
       ? 120
       : 100;
 
-  const MIN_SPACING = 10; // Fixed 10px spacing
+  const MIN_SPACING = 10;
   const baseWidth = containerWidth;
   const circumference = Math.PI * baseWidth;
 
@@ -167,7 +167,6 @@ const RollingGallery = ({ autoplay = false, pauseOnHover = false }) => {
     margin: `0 ${spacing}px`,
   });
 
-  // Effects
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
